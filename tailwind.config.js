@@ -4,33 +4,39 @@ export default {
     "./index.html",
     "./src/**/*.{js,ts,jsx,tsx}",
   ],
+  darkMode: 'class',
   theme: {
     extend: {
       colors: {
+        // SAK CONSTRUCTIONS GH Brand Colors
         primary: {
-          50: '#eff6ff',
-          100: '#dbeafe',
-          200: '#bfdbfe',
-          300: '#93c5fd',
-          400: '#60a5fa',
-          500: '#3b82f6',
-          600: '#2563eb',
-          700: '#1d4ed8',
-          800: '#1e40af',
-          900: '#1e3a8a',
+          50: '#fff7ed',
+          100: '#ffedd5',
+          200: '#fed7aa',
+          300: '#fdba74',
+          400: '#fb923c',
+          500: '#f97316',
+          600: '#ea580c',
+          700: '#c2410c',
+          800: '#9a3412',
+          900: '#7c2d12',
         },
-        secondary: {
-          50: '#f8fafc',
-          100: '#f1f5f9',
-          200: '#e2e8f0',
-          300: '#cbd5e1',
-          400: '#94a3b8',
-          500: '#64748b',
-          600: '#475569',
-          700: '#334155',
-          800: '#1e293b',
-          900: '#0f172a',
+        brand: {
+          charcoal: '#2d3748',
+          orange: '#f97316',
+          lightGray: '#a0aec0',
         },
+        // Admin-specific colors
+        admin: {
+          primary: '#1f2937',    // Dark gray
+          secondary: '#374151',   // Medium gray
+          accent: '#f97316',      // Orange accent
+          success: '#10b981',     // Green
+          warning: '#f59e0b',     // Yellow
+          error: '#ef4444',       // Red
+          info: '#3b82f6',        // Blue
+        },
+        // System colors
         success: {
           50: '#f0fdf4',
           100: '#dcfce7',
@@ -70,6 +76,7 @@ export default {
       },
       fontFamily: {
         sans: ['Inter', 'system-ui', 'sans-serif'],
+        admin: ['Inter', 'system-ui', 'sans-serif'],
       },
       animation: {
         'fade-in': 'fadeIn 0.5s ease-in-out',
@@ -88,5 +95,8 @@ export default {
       },
     },
   },
-  plugins: [],
+  plugins: [
+    require('@tailwindcss/forms'),
+    require('@tailwindcss/typography'),
+  ],
 } 
