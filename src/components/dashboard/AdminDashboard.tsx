@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react'
 import { 
   TrendingUp, 
+  TrendingDown,
   Users, 
   FileText, 
   DollarSign, 
@@ -8,7 +9,9 @@ import {
   Activity,
   Eye,
   CheckCircle,
-  XCircle
+  XCircle,
+  Clock,
+  ShoppingCart
 } from 'lucide-react'
 import { adminAnalyticsService } from '../../services/admin/adminAnalytics'
 
