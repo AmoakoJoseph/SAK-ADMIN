@@ -1,5 +1,7 @@
+import React from 'react'
 import { jsPDF } from 'jspdf'
 import 'jspdf-autotable'
+import { Download } from 'lucide-react'
 
 // Extend jsPDF type to include autoTable
 declare module 'jspdf' {
@@ -7,15 +9,6 @@ declare module 'jspdf' {
     autoTable: (options: any) => jsPDF
   }
 }
-import { 
-  Download, 
-  FileText, 
-  BarChart3, 
-  TrendingUp,
-  Users,
-  DollarSign,
-  Calendar
-} from 'lucide-react'
 
 interface AnalyticsData {
   revenueData: any[]

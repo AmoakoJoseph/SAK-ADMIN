@@ -1,5 +1,5 @@
-import { Download, Image, FileText } from 'lucide-react'
-import toast from 'react-hot-toast'
+import { Image, FileText } from 'lucide-react'
+import { toast } from 'react-hot-toast'
 
 interface ChartExportProps {
   chartRef: React.RefObject<HTMLDivElement>
@@ -46,7 +46,7 @@ const ChartExport = ({ chartRef, chartName, onExport }: ChartExportProps) => {
   const exportAsCSV = () => {
     // This would export chart data as CSV
     // Implementation depends on the specific chart data structure
-    toast.info('CSV export feature coming soon!')
+    toast.success('CSV export feature coming soon!')
   }
 
   return (

@@ -55,7 +55,7 @@ const Plans = () => {
           description: 'Modern office building with sustainable design',
           price: 5000,
           category: 'Commercial',
-          status: 'pending',
+          status: 'review',
           images: ['office1.jpg'],
           features: ['Open Floor Plan', 'Conference Rooms', 'Parking'],
           squareFootage: 5000,

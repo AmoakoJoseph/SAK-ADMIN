@@ -21,7 +21,7 @@ import {
 
 interface SidebarProps {
   collapsed: boolean
-  onCollapse: (collapsed: boolean) => void
+  onCollapsed: (collapsed: boolean) => void
 }
 
 interface NavigationItem {
