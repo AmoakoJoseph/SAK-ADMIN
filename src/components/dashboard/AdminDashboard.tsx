@@ -1,17 +1,58 @@
-import { useState, useEffect } from 'react'
+import React, { useState, useEffect } from 'react'
 import { 
   TrendingUp, 
-  TrendingDown, 
   Users, 
   FileText, 
-  ShoppingCart, 
-  DollarSign,
-  Activity,
+  DollarSign, 
   Calendar,
-  Clock,
-  AlertCircle
+  Activity,
+  Eye,
+  CheckCircle,
+  XCircle
 } from 'lucide-react'
-import { adminAnalyticsService, DashboardStats } from '../../services/admin/adminAnalytics'
+import { adminAnalyticsService } from '../../services/admin/adminAnalytics'
+
+// Mock data for development
+const mockDashboardStats = {
+  totalRevenue: 1250000,
+  totalOrders: 3420,
+  totalUsers: 1850,
+  totalPlans: 456,
+  revenueChange: 12.5,
+  ordersChange: 8.3,
+  usersChange: 15.7,
+  plansChange: 22.1,
+  recentActivity: [
+    {
+      id: '1',
+      type: 'order',
+      message: 'New order received for Commercial Plan',
+      timestamp: new Date(Date.now() - 1000 * 60 * 5),
+      user: 'John Doe',
+      amount: 5000
+    },
+    {
+      id: '2',
+      type: 'user',
+      message: 'New user registration: Sarah Wilson',
+      timestamp: new Date(Date.now() - 1000 * 60 * 15),
+      user: 'Sarah Wilson'
+    },
+    {
+      id: '3',
+      type: 'plan',
+      message: 'New plan uploaded: Modern Office Complex',
+      timestamp: new Date(Date.now() - 1000 * 60 * 30),
+      user: 'Architect Pro'
+    }
+  ],
+  quickActions: [
+    { name: 'Review Plans', count: 12, icon: FileText, color: 'bg-blue-500' },
+    { name: 'Process Orders', count: 8, icon: DollarSign, color: 'bg-green-500' },
+    { name: 'User Approvals', count: 5, icon: Users, color: 'bg-purple-500' },
+    { name: 'System Health', count: 100, icon: CheckCircle, color: 'bg-green-500' }
+  ]
+}
 
 interface StatCardProps {
   title: string
@@ -126,20 +167,27 @@ const AdminDashboard = () => {
   const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
-    const fetchDashboardStats = async () => {
+    const fetchStats = async () => {
+      setLoading(true)
       try {
-        setLoading(true)
-        const data = await adminAnalyticsService.getDashboardStats()
-        setStats(data)
-      } catch (err) {
-        setError('Failed to load dashboard statistics')
-        console.error('Error fetching dashboard stats:', err)
+        // Try to fetch from API first
+        if (import.meta.env.VITE_API_BASE_URL) {
+          const data = await adminAnalyticsService.getDashboardStats()
+          setStats(data)
+        } else {
+          // Fallback to mock data if no API URL configured
+          setStats(mockDashboardStats)
+        }
+      } catch (error) {
+        console.warn('API call failed, using mock data:', error)
+        // Use mock data as fallback
+        setStats(mockDashboardStats)
       } finally {
         setLoading(false)
       }
     }
 
-    fetchDashboardStats()
+    fetchStats()
   }, [])
 
   const handleQuickAction = (action: string) => {

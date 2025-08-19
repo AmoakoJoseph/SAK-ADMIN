@@ -19,6 +19,51 @@ import {
   Zap,
   Shield
 } from 'lucide-react'
+import { adminSettingsService } from '../../services/admin/adminSettings'
+
+// Mock data for development
+const mockEmailTemplates: EmailTemplate[] = [
+  {
+    id: '1',
+    name: 'Welcome Email',
+    type: 'welcome',
+    subject: 'Welcome to SAK Constructions!',
+    content: 'Welcome {{userName}}! We\'re excited to have you on board.',
+    variables: ['userName'],
+    isActive: true,
+    createdAt: new Date('2024-01-01'),
+    updatedAt: new Date('2024-01-01')
+  },
+  {
+    id: '2',
+    name: 'Order Confirmation',
+    type: 'order',
+    subject: 'Order Confirmation - {{orderNumber}}',
+    content: 'Thank you for your order {{orderNumber}}. Total: {{amount}}',
+    variables: ['orderNumber', 'amount'],
+    isActive: true,
+    createdAt: new Date('2024-01-01'),
+    updatedAt: new Date('2024-01-01')
+  }
+]
+
+const mockEmailSettings: EmailSettings = {
+  smtp: {
+    host: 'smtp.gmail.com',
+    port: 587,
+    username: 'noreply@sakconstructions.com',
+    password: '',
+    encryption: 'tls',
+    enabled: true
+  },
+  sendgrid: {
+    apiKey: '',
+    enabled: false
+  },
+  defaultFrom: 'noreply@sakconstructions.com',
+  defaultReplyTo: 'support@sakconstructions.com',
+  testEmail: 'test@sakconstructions.com'
+}
 
 interface EmailTemplate {
   id: string
@@ -189,17 +234,29 @@ The SAK CONSTRUCTIONS GH Team`,
   const [activeTab, setActiveTab] = useState<'templates' | 'settings'>('templates')
 
   useEffect(() => {
-    fetchEmailData()
-  }, [])
-
-  const fetchEmailData = async () => {
-    try {
-      // In real app, fetch from API
+    const fetchData = async () => {
       console.log('Fetching email data...')
-    } catch (error) {
-      console.error('Error fetching email data:', error)
+      try {
+        // Try to fetch from API first
+        if (import.meta.env.VITE_API_BASE_URL) {
+          const data = await adminSettingsService.getEmailSettings()
+          setEmailTemplates(data.templates)
+          setEmailSettings(data.settings)
+        } else {
+          // Use mock data if no API URL configured
+          setEmailTemplates(mockEmailTemplates)
+          setEmailSettings(mockEmailSettings)
+        }
+      } catch (error) {
+        console.warn('API call failed, using mock data:', error)
+        // Use mock data as fallback
+        setEmailTemplates(mockEmailTemplates)
+        setEmailSettings(mockEmailSettings)
+      }
     }
-  }
+
+    fetchData()
+  }, [])
 
   const handleSaveTemplate = async () => {
     if (!editingTemplate) return

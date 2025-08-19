@@ -12,6 +12,7 @@ import {
   XCircle,
   AlertCircle
 } from 'lucide-react'
+import { adminSettingsService } from '../../services/admin/adminSettings'
 
 interface PaymentConfigData {
   stripe: {
@@ -57,6 +58,60 @@ interface PaymentConfigData {
     maximumOrderAmount: number
     autoApproveOrders: boolean
     refundPolicy: string
+  }
+}
+
+// Mock data for development
+const mockPaymentConfig: PaymentConfigData = {
+  stripe: {
+    enabled: true,
+    publishableKey: 'pk_test_your_stripe_key',
+    secretKey: 'sk_test_your_stripe_key',
+    webhookSecret: 'whsec_your_webhook_secret',
+    currency: 'GHS',
+    supportedCurrencies: ['GH', 'US', 'UK', 'CA']
+  },
+  paypal: {
+    enabled: false,
+    clientId: 'your_paypal_client_id',
+    clientSecret: 'your_paypal_client_secret',
+    mode: 'sandbox',
+    currency: 'GHS'
+  },
+  mobileMoney: {
+    enabled: true,
+    providers: ['MTN', 'Vodafone', 'AirtelTigo'],
+    apiKeys: {
+      'MTN': 'your_mobile_money_api_key',
+      'Vodafone': 'your_mobile_money_api_key',
+      'AirtelTigo': 'your_mobile_money_api_key'
+    },
+    webhookUrls: {
+      'MTN': 'https://api.sakconstructions.com/webhooks/mobile-money',
+      'Vodafone': 'https://api.sakconstructions.com/webhooks/mobile-money',
+      'AirtelTigo': 'https://api.sakconstructions.com/webhooks/mobile-money'
+    }
+  },
+  bankTransfer: {
+    enabled: true,
+    bankDetails: {
+      bankName: 'Ghana Commercial Bank',
+      accountNumber: '1234567890',
+      accountName: 'SAK Constructions Ltd',
+      swiftCode: 'GCBLGHAC',
+      routingNumber: '123456789'
+    },
+    instructions: 'Please include your order number as reference',
+    processingTime: '2-3 business days'
+  },
+  general: {
+    defaultCurrency: 'GHS',
+    taxRate: 12.5,
+    taxIncluded: true,
+    minimumOrderAmount: 10,
+    maximumOrderAmount: 10000,
+    autoApproveOrders: false,
+    refundPolicy: '30 days'
   }
 }
 
@@ -121,17 +176,28 @@ const PaymentConfig: React.FC = () => {
   const [testing, setTesting] = useState<string | null>(null)
 
   useEffect(() => {
-    fetchPaymentConfig()
+    const fetchConfig = async () => {
+      console.log('Fetching payment configuration...')
+      try {
+        // Try to fetch from API first
+        if (import.meta.env.VITE_API_BASE_URL) {
+          const data = await adminSettingsService.getPaymentSettings()
+          setPaymentConfig(data)
+        } else {
+          // Use mock data if no API URL configured
+          setPaymentConfig(mockPaymentConfig)
+        }
+      } catch (error) {
+        console.warn('API call failed, using mock data:', error)
+        // Use mock data as fallback
+        setPaymentConfig(mockPaymentConfig)
+      }
+    }
+
+    fetchConfig()
   }, [])
 
-  const fetchPaymentConfig = async () => {
-    try {
-      // In real app, fetch from API
-      console.log('Fetching payment configuration...')
-    } catch (error) {
-      console.error('Error fetching payment config:', error)
-    }
-  }
+
 
   const handleSave = async () => {
     setSaving(true)

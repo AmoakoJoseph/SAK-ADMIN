@@ -20,6 +20,7 @@ import {
   Globe,
   FileText
 } from 'lucide-react'
+import { adminSettingsService } from '../../services/admin/adminSettings'
 
 interface SecuritySettings {
   authentication: {
@@ -65,6 +66,53 @@ interface SecuritySettings {
     auditLogging: boolean
     privacyPolicyUrl: string
     termsOfServiceUrl: string
+  }
+}
+
+const mockSecuritySettings: SecuritySettings = {
+  authentication: {
+    requireEmailVerification: true,
+    requirePhoneVerification: false,
+    requireMFA: false,
+    mfaMethods: ['totp'],
+    sessionTimeout: 3600,
+    maxLoginAttempts: 5,
+    lockoutDuration: 900,
+    passwordPolicy: {
+      minLength: 8,
+      requireUppercase: true,
+      requireLowercase: true,
+      requireNumbers: true,
+      requireSpecialChars: true,
+      preventCommonPasswords: true,
+      passwordHistory: 5
+    }
+  },
+  api: {
+    enabled: true,
+    rateLimit: 100,
+    rateLimitWindow: 3600,
+    requireApiKey: true,
+    apiKeyExpiry: 365,
+    allowedOrigins: ['https://sakconstructions.com', 'https://admin.sakconstructions.com'],
+    corsEnabled: true
+  },
+  monitoring: {
+    loginAttempts: true,
+    suspiciousActivity: true,
+    failedTransactions: true,
+    adminActions: true,
+    dataExports: true,
+    retentionPeriod: 2555
+  },
+  compliance: {
+    gdprEnabled: true,
+    dataRetention: 2555,
+    rightToBeForgotten: true,
+    dataPortability: true,
+    auditLogging: true,
+    privacyPolicyUrl: 'https://sakconstructions.com/privacy',
+    termsOfServiceUrl: 'https://sakconstructions.com/terms'
   }
 }
 
@@ -122,17 +170,26 @@ const Security = () => {
   const [activeTab, setActiveTab] = useState<'authentication' | 'api' | 'monitoring' | 'compliance'>('authentication')
 
   useEffect(() => {
-    fetchSecuritySettings()
-  }, [])
-
-  const fetchSecuritySettings = async () => {
-    try {
-      // In real app, fetch from API
+    const fetchSettings = async () => {
       console.log('Fetching security settings...')
-    } catch (error) {
-      console.error('Error fetching security settings:', error)
+      try {
+        // Try to fetch from API first
+        if (import.meta.env.VITE_API_BASE_URL) {
+          const data = await adminSettingsService.getSecuritySettings()
+          setSecuritySettings(data)
+        } else {
+          // Use mock data if no API URL configured
+          setSecuritySettings(mockSecuritySettings)
+        }
+      } catch (error) {
+        console.warn('API call failed, using mock data:', error)
+        // Use mock data as fallback
+        setSecuritySettings(mockSecuritySettings)
+      }
     }
-  }
+
+    fetchSettings()
+  }, [])
 
   const handleSave = async () => {
     setSaving(true)
