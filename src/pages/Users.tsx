@@ -1,383 +1,649 @@
-import { useState, useEffect } from 'react'
+import React, { useState, useEffect } from 'react'
 import { 
-  Plus, 
-  Search, 
-  Filter, 
-  Download, 
-  UserPlus, 
-  Edit, 
-  Trash2, 
-  Eye,
-  Shield,
-  Mail,
-  Phone,
-  Calendar,
-  CheckCircle,
-  XCircle,
-  Clock,
-  Users as UsersIcon
-} from 'lucide-react'
-import { adminUsersService, AdminUser } from '../services/admin/adminUsers'
+  Card, 
+  Button, 
+  Table, 
+  Tag, 
+  Space, 
+  Input, 
+  Select, 
+  DatePicker, 
+  Row, 
+  Col,
+  Modal,
+  Form,
+  Avatar,
+  Switch,
+  message,
+  Popconfirm,
+  Tooltip,
+  Badge,
+  Tabs,
+  List,
+  Descriptions,
+  Timeline
+} from 'antd'
+import { 
+  UserAddOutlined, 
+  SearchOutlined, 
+  FilterOutlined,
+  EditOutlined,
+  DeleteOutlined,
+  EyeOutlined,
+  CheckCircleOutlined,
+  ClockCircleOutlined,
+  UserOutlined,
+  LockOutlined,
+  UnlockOutlined,
+  MailOutlined,
+  PhoneOutlined,
+  CalendarOutlined,
+  CrownOutlined,
+  TeamOutlined,
+  SettingOutlined
+} from '@ant-design/icons'
+import { useSelector, useDispatch } from 'react-redux'
+import { RootState } from '../store'
+import { 
+  fetchUsersStart, 
+  fetchUsersSuccess, 
+  fetchUsersFailure,
+  addUser,
+  updateUser,
+  deleteUser 
+} from '../store/slices/usersSlice'
 
-const Users = () => {
-  const [users, setUsers] = useState<AdminUser[]>([])
-  const [loading, setLoading] = useState(true)
-  const [searchTerm, setSearchTerm] = useState('')
-  const [roleFilter, setRoleFilter] = useState('all')
-  const [statusFilter, setStatusFilter] = useState('all')
+const { Option } = Select
+const { RangePicker } = DatePicker
 
-  useEffect(() => {
-    fetchUsers()
-  }, [])
 
-  const fetchUsers = async () => {
-    try {
-      setLoading(true)
-      // For now, using mock data until API is ready
-      const mockUsers: AdminUser[] = [
+const Users: React.FC = () => {
+  const [isModalVisible, setIsModalVisible] = useState(false)
+  const [editingUser, setEditingUser] = useState<any>(null)
+  const [selectedUser, setSelectedUser] = useState<any>(null)
+  const [userDetailsVisible, setUserDetailsVisible] = useState(false)
+  const [form] = Form.useForm()
+  const dispatch = useDispatch()
+  const { users, isLoading } = useSelector((state: RootState) => state.users)
+
+  // Mock data for demonstration
+  const mockUsers = [
         {
           id: '1',
           name: 'John Doe',
           email: 'john.doe@example.com',
-          role: 'user',
+      phone: '+233 24 123 4567',
+      role: 'superAdmin',
           status: 'active',
-          emailVerified: true,
+      avatar: undefined,
           createdAt: '2024-01-15',
-          lastLogin: '2024-01-20',
-          loginHistory: [],
-          permissions: [],
-          profile: {
-            avatar: 'https://via.placeholder.com/40',
-            phone: '+233 20 123 4567',
-            address: 'Accra, Ghana',
-            company: 'ABC Construction',
-            position: 'Architect'
-          },
-          subscription: {
-            plan: 'Premium',
-            status: 'active',
-            startDate: '2024-01-15',
-            endDate: '2025-01-15',
-            autoRenew: true
-          },
-          supportTickets: []
+      lastLogin: '2024-01-20 14:30',
+      totalOrders: 15,
+      totalSpent: 45000
         },
         {
           id: '2',
           name: 'Jane Smith',
           email: 'jane.smith@example.com',
-          role: 'admin',
+      phone: '+233 20 987 6543',
+      role: 'contentManager',
           status: 'active',
-          emailVerified: true,
+      avatar: undefined,
           createdAt: '2024-01-10',
-          lastLogin: '2024-01-21',
-          loginHistory: [],
-          permissions: [],
-          profile: {
-            avatar: 'https://via.placeholder.com/40',
-            phone: '+233 24 987 6543',
-            address: 'Kumasi, Ghana',
-            company: 'XYZ Architects',
-            position: 'Senior Designer'
-          },
-          subscription: {
-            plan: 'Enterprise',
-            status: 'active',
-            startDate: '2024-01-10',
-            endDate: '2025-01-10',
-            autoRenew: true
-          },
-          supportTickets: []
+      lastLogin: '2024-01-19 09:15',
+      totalOrders: 8,
+      totalSpent: 28000
         },
         {
           id: '3',
-          name: 'Bob Wilson',
-          email: 'bob.wilson@example.com',
-          role: 'user',
+      name: 'Mike Johnson',
+      email: 'mike.johnson@example.com',
+      phone: '+233 26 555 1234',
+      role: 'orderProcessor',
           status: 'suspended',
-          emailVerified: false,
+      avatar: undefined,
+      createdAt: '2024-01-08',
+      lastLogin: '2024-01-18 16:45',
+      totalOrders: 3,
+      totalSpent: 12000
+    },
+    {
+      id: '4',
+      name: 'Sarah Wilson',
+      email: 'sarah.wilson@example.com',
+      phone: '+233 27 777 8888',
+      role: 'support',
+      status: 'active',
+      avatar: undefined,
           createdAt: '2024-01-05',
-          lastLogin: '2024-01-18',
-          loginHistory: [],
-          permissions: [],
-          profile: {
-            avatar: 'https://via.placeholder.com/40',
-            phone: '+233 26 555 1234',
-            address: 'Tema, Ghana',
-            company: 'DEF Engineering',
-            position: 'Engineer'
-          },
-          subscription: {
-            plan: 'Basic',
-            status: 'expired',
-            startDate: '2024-01-05',
-            endDate: '2024-02-05',
-            autoRenew: false
-          },
-          supportTickets: []
-        }
-      ]
-      setUsers(mockUsers)
-    } catch (error) {
-      console.error('Error fetching users:', error)
-    } finally {
-      setLoading(false)
+      lastLogin: '2024-01-20 11:20',
+      totalOrders: 12,
+      totalSpent: 38000
+    }
+  ]
+
+  useEffect(() => {
+    // Simulate loading users
+    dispatch(fetchUsersStart())
+    setTimeout(() => {
+      dispatch(fetchUsersSuccess(mockUsers))
+    }, 1000)
+  }, [dispatch])
+
+  const getRoleColor = (role: string) => {
+    switch (role) {
+      case 'superAdmin': return 'red'
+      case 'admin': return 'purple'
+      case 'contentManager': return 'blue'
+      case 'orderProcessor': return 'green'
+      case 'support': return 'orange'
+      default: return 'default'
+    }
+  }
+
+  const getRoleIcon = (role: string) => {
+    switch (role) {
+      case 'superAdmin': return <CrownOutlined />
+      case 'admin': return <SettingOutlined />
+      case 'contentManager': return <TeamOutlined />
+      case 'orderProcessor': return <UserOutlined />
+      case 'support': return <UserOutlined />
+      default: return <UserOutlined />
     }
   }
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case 'active':
-        return 'bg-success-100 text-success-800'
-      case 'suspended':
-        return 'bg-danger-100 text-danger-800'
-      case 'pending':
-        return 'bg-warning-100 text-warning-800'
-      case 'banned':
-        return 'bg-gray-100 text-gray-800'
-      default:
-        return 'bg-gray-100 text-gray-800'
+      case 'active': return 'green'
+      case 'suspended': return 'orange'
+      case 'banned': return 'red'
+      default: return 'default'
     }
   }
 
-  const getRoleColor = (role: string) => {
-    switch (role) {
-      case 'super_admin':
-        return 'bg-purple-100 text-purple-800'
-      case 'admin':
-        return 'bg-blue-100 text-blue-800'
-      case 'moderator':
-        return 'bg-green-100 text-green-800'
-      case 'support':
-        return 'bg-orange-100 text-orange-800'
-      case 'user':
-        return 'bg-gray-100 text-gray-800'
-      default:
-        return 'bg-gray-100 text-gray-800'
-    }
-  }
-
-  const getSubscriptionStatusColor = (status: string) => {
+  const getStatusIcon = (status: string) => {
     switch (status) {
-      case 'active':
-        return 'bg-success-100 text-success-800'
-      case 'expired':
-        return 'bg-danger-100 text-danger-800'
-      case 'cancelled':
-        return 'bg-gray-100 text-gray-800'
-      default:
-        return 'bg-gray-100 text-gray-800'
+      case 'active': return <CheckCircleOutlined />
+      case 'suspended': return <ClockCircleOutlined />
+      case 'banned': return <LockOutlined />
+      default: return <UserOutlined />
     }
   }
 
-  const filteredUsers = users.filter(user => {
-    const matchesSearch = user.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         user.email.toLowerCase().includes(searchTerm.toLowerCase())
-    const matchesRole = roleFilter === 'all' || user.role === roleFilter
-    const matchesStatus = statusFilter === 'all' || user.status === statusFilter
-    
-    return matchesSearch && matchesRole && matchesStatus
-  })
-
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center h-64">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-brand-orange"></div>
-      </div>
-    )
+  const handleAddUser = () => {
+    setEditingUser(null)
+    form.resetFields()
+    setIsModalVisible(true)
   }
+
+  const handleEditUser = (user: any) => {
+    setEditingUser(user)
+    form.setFieldsValue(user)
+    setIsModalVisible(true)
+  }
+
+  const handleDeleteUser = (userId: string) => {
+    dispatch(deleteUser(userId))
+    message.success('User deleted successfully')
+  }
+
+  const handleViewUser = (user: any) => {
+    setSelectedUser(user)
+    setUserDetailsVisible(true)
+  }
+
+  const handleStatusChange = (userId: string, newStatus: string) => {
+    const user = users.find(u => u.id === userId)
+    if (user) {
+      dispatch(updateUser({ ...user, status: newStatus }))
+      message.success(`User status updated to ${newStatus}`)
+    }
+  }
+
+  const handleModalOk = async () => {
+    try {
+      const values = await form.validateFields()
+      if (editingUser) {
+        dispatch(updateUser({ ...editingUser, ...values }))
+        message.success('User updated successfully')
+      } else {
+        const newUser = {
+          id: Date.now().toString(),
+          ...values,
+          createdAt: new Date().toISOString(),
+          lastLogin: null,
+          totalOrders: 0,
+          totalSpent: 0
+        }
+        dispatch(addUser(newUser))
+        message.success('User created successfully')
+      }
+      setIsModalVisible(false)
+    } catch (error) {
+      console.error('Validation failed:', error)
+    }
+  }
+
+  const columns = [
+    {
+      title: 'User',
+      dataIndex: 'name',
+      key: 'name',
+      render: (text: string, record: any) => (
+        <div className="flex items-center space-x-3">
+          <Avatar src={record.avatar} size="large">
+            {text.charAt(0)}
+          </Avatar>
+          <div>
+            <div className="font-medium">{text}</div>
+            <div className="text-sm text-gray-500">{record.email}</div>
+          </div>
+        </div>
+      ),
+    },
+    {
+      title: 'Role',
+      dataIndex: 'role',
+      key: 'role',
+      render: (role: string) => (
+        <Tag color={getRoleColor(role)} icon={getRoleIcon(role)}>
+          {role.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase())}
+        </Tag>
+      ),
+    },
+    {
+      title: 'Status',
+      dataIndex: 'status',
+      key: 'status',
+      render: (status: string) => (
+        <Badge 
+          status={getStatusColor(status) as any} 
+          text={status.charAt(0).toUpperCase() + status.slice(1)}
+          icon={getStatusIcon(status)}
+        />
+      ),
+    },
+    {
+      title: 'Activity',
+      key: 'activity',
+      render: (record: any) => (
+        <div className="text-sm">
+          <div>Orders: {record.totalOrders}</div>
+          <div>Spent: ₵{record.totalSpent.toLocaleString()}</div>
+        </div>
+      ),
+    },
+    {
+      title: 'Last Login',
+      dataIndex: 'lastLogin',
+      key: 'lastLogin',
+      render: (lastLogin: string) => (
+        <div className="text-sm">
+          {lastLogin ? new Date(lastLogin).toLocaleDateString() : 'Never'}
+        </div>
+      ),
+    },
+    {
+      title: 'Actions',
+      key: 'actions',
+      render: (record: any) => (
+        <Space>
+          <Tooltip title="View Details">
+            <Button 
+              type="text" 
+              icon={<EyeOutlined />} 
+              size="small"
+              onClick={() => handleViewUser(record)}
+            />
+          </Tooltip>
+          <Tooltip title="Edit User">
+            <Button 
+              type="text" 
+              icon={<EditOutlined />} 
+              size="small"
+              onClick={() => handleEditUser(record)}
+            />
+          </Tooltip>
+          <Popconfirm
+            title="Are you sure you want to delete this user?"
+            onConfirm={() => handleDeleteUser(record.id)}
+            okText="Yes"
+            cancelText="No"
+          >
+            <Tooltip title="Delete User">
+              <Button type="text" icon={<DeleteOutlined />} size="small" danger />
+            </Tooltip>
+          </Popconfirm>
+        </Space>
+      ),
+    },
+  ]
+
+  const mockActivity = [
+    { time: '2024-01-20 14:30', action: 'User logged in', ip: '192.168.1.100' },
+    { time: '2024-01-19 16:45', action: 'Updated profile information', ip: '192.168.1.100' },
+    { time: '2024-01-18 09:20', action: 'Downloaded plan files', ip: '192.168.1.100' },
+    { time: '2024-01-17 11:15', action: 'Made a purchase', ip: '192.168.1.100' }
+  ]
 
   return (
     <div className="space-y-6">
-      {/* Page Header */}
-      <div className="flex items-center justify-between">
+      {/* Header */}
+      <div className="flex justify-between items-center">
         <div>
-          <h1 className="text-2xl font-bold text-brand-charcoal">Users Management</h1>
-          <p className="text-brand-lightGray">Manage user accounts, roles, and permissions</p>
+          <h1 className="text-2xl font-bold text-gray-900 mb-2">Users & Accounts</h1>
+          <p className="text-gray-600">Manage user accounts and permissions</p>
         </div>
-        <div className="flex items-center space-x-3">
-          <button className="btn btn-secondary flex items-center space-x-2">
-            <Download size={16} />
-            <span>Export Users</span>
-          </button>
-          <button className="btn btn-primary flex items-center space-x-2">
-            <UserPlus size={16} />
-            <span>Add User</span>
-          </button>
-        </div>
+        <Button type="primary" icon={<UserAddOutlined />} size="large" onClick={handleAddUser}>
+          Add User
+        </Button>
       </div>
 
-      {/* Filters and Search */}
-      <div className="bg-white rounded-lg shadow-sm border border-brand-lightGray p-6">
-        <div className="flex flex-col md:flex-row gap-4">
-          <div className="flex-1">
-            <div className="relative">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-brand-lightGray" size={20} />
-              <input
-                type="text"
-                placeholder="Search users by name or email..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-10 pr-4 py-2 w-full border border-brand-lightGray rounded-md focus:outline-none focus:ring-2 focus:ring-brand-orange focus:border-transparent"
-              />
-            </div>
-          </div>
-          <div className="flex gap-3">
-            <select
-              value={roleFilter}
-              onChange={(e) => setRoleFilter(e.target.value)}
-              className="px-3 py-2 border border-brand-lightGray rounded-md focus:outline-none focus:ring-2 focus:ring-brand-orange focus:border-transparent"
-            >
-              <option value="all">All Roles</option>
-              <option value="super_admin">Super Admin</option>
-              <option value="admin">Admin</option>
-              <option value="moderator">Moderator</option>
-              <option value="support">Support</option>
-              <option value="user">User</option>
-            </select>
-            <select
-              value={statusFilter}
-              onChange={(e) => setStatusFilter(e.target.value)}
-              className="px-3 py-2 border border-brand-lightGray rounded-md focus:outline-none focus:ring-2 focus:ring-brand-orange focus:border-transparent"
-            >
-              <option value="all">All Status</option>
-              <option value="active">Active</option>
-              <option value="pending">Pending</option>
-              <option value="suspended">Suspended</option>
-              <option value="banned">Banned</option>
-            </select>
-          </div>
-        </div>
-      </div>
+      {/* Filters */}
+      <Card>
+        <Row gutter={[16, 16]} align="middle">
+          <Col xs={24} sm={12} md={6}>
+            <Input
+              placeholder="Search users..."
+              prefix={<SearchOutlined />}
+              allowClear
+            />
+          </Col>
+          <Col xs={24} sm={12} md={4}>
+            <Select placeholder="Role" allowClear style={{ width: '100%' }}>
+              <Option value="superAdmin">Super Admin</Option>
+              <Option value="admin">Admin</Option>
+              <Option value="contentManager">Content Manager</Option>
+              <Option value="orderProcessor">Order Processor</Option>
+              <Option value="support">Support</Option>
+            </Select>
+          </Col>
+          <Col xs={24} sm={12} md={4}>
+            <Select placeholder="Status" allowClear style={{ width: '100%' }}>
+              <Option value="active">Active</Option>
+              <Option value="suspended">Suspended</Option>
+              <Option value="banned">Banned</Option>
+            </Select>
+          </Col>
+          <Col xs={24} sm={12} md={6}>
+            <RangePicker style={{ width: '100%' }} placeholder={['Start Date', 'End Date']} />
+          </Col>
+          <Col xs={24} sm={12} md={4}>
+            <Button icon={<FilterOutlined />} block>
+              Apply Filters
+            </Button>
+          </Col>
+        </Row>
+      </Card>
 
       {/* Users Table */}
-      <div className="bg-white rounded-lg shadow-sm border border-brand-lightGray overflow-hidden">
-        <div className="overflow-x-auto">
-          <table className="min-w-full divide-y divide-brand-lightGray">
-            <thead className="bg-primary-50">
-              <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium text-brand-charcoal uppercase tracking-wider">
-                  User
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-brand-charcoal uppercase tracking-wider">
-                  Role
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-brand-charcoal uppercase tracking-wider">
-                  Status
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-brand-charcoal uppercase tracking-wider">
-                  Subscription
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-brand-charcoal uppercase tracking-wider">
-                  Last Login
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-brand-charcoal uppercase tracking-wider">
-                  Joined
-                </th>
-                <th className="px-6 py-3 text-right text-xs font-medium text-brand-charcoal uppercase tracking-wider">
-                  Actions
-                </th>
-              </tr>
-            </thead>
-            <tbody className="bg-white divide-y divide-brand-lightGray">
-              {filteredUsers.map((user) => (
-                <tr key={user.id} className="hover:bg-primary-50">
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="flex items-center">
-                      <div className="flex-shrink-0 h-10 w-10">
-                        <img 
-                          className="h-10 w-10 rounded-full" 
-                          src={user.profile.avatar} 
-                          alt={user.name}
+      <Card>
+        <Table
+          columns={columns}
+          dataSource={users}
+          loading={isLoading}
+          rowKey="id"
+          pagination={{
+            total: users.length,
+            pageSize: 10,
+            showSizeChanger: true,
+            showQuickJumper: true,
+            showTotal: (total, range) => `${range[0]}-${range[1]} of ${total} users`,
+          }}
+        />
+      </Card>
+
+      {/* Add/Edit User Modal */}
+      <Modal
+        title={editingUser ? 'Edit User' : 'Add New User'}
+        open={isModalVisible}
+        onOk={handleModalOk}
+        onCancel={() => setIsModalVisible(false)}
+        width={600}
+        okText={editingUser ? 'Update' : 'Create'}
+        cancelText="Cancel"
+      >
+        <Form
+          form={form}
+          layout="vertical"
+          initialValues={{
+            status: 'active',
+            role: 'support'
+          }}
+        >
+          <Row gutter={16}>
+            <Col span={12}>
+              <Form.Item
+                name="name"
+                label="Full Name"
+                rules={[{ required: true, message: 'Please enter full name' }]}
+              >
+                <Input placeholder="Enter full name" />
+              </Form.Item>
+            </Col>
+            <Col span={12}>
+              <Form.Item
+                name="email"
+                label="Email"
+                rules={[
+                  { required: true, message: 'Please enter email' },
+                  { type: 'email', message: 'Please enter a valid email' }
+                ]}
+              >
+                <Input placeholder="Enter email address" />
+              </Form.Item>
+            </Col>
+          </Row>
+
+          <Row gutter={16}>
+            <Col span={12}>
+              <Form.Item
+                name="phone"
+                label="Phone Number"
+                rules={[{ required: true, message: 'Please enter phone number' }]}
+              >
+                <Input placeholder="Enter phone number" />
+              </Form.Item>
+            </Col>
+            <Col span={12}>
+              <Form.Item
+                name="role"
+                label="Role"
+                rules={[{ required: true, message: 'Please select role' }]}
+              >
+                <Select placeholder="Select role">
+                  <Option value="superAdmin">Super Admin</Option>
+                  <Option value="admin">Admin</Option>
+                  <Option value="contentManager">Content Manager</Option>
+                  <Option value="orderProcessor">Order Processor</Option>
+                  <Option value="support">Support</Option>
+                </Select>
+              </Form.Item>
+            </Col>
+          </Row>
+
+          <Row gutter={16}>
+            <Col span={12}>
+              <Form.Item
+                name="status"
+                label="Status"
+                rules={[{ required: true, message: 'Please select status' }]}
+              >
+                <Select placeholder="Select status">
+                  <Option value="active">Active</Option>
+                  <Option value="suspended">Suspended</Option>
+                  <Option value="banned">Banned</Option>
+                </Select>
+              </Form.Item>
+            </Col>
+            <Col span={12}>
+              <Form.Item
+                name="password"
+                label="Password"
+                rules={[
+                  { required: !editingUser, message: 'Please enter password' },
+                  { min: 6, message: 'Password must be at least 6 characters' }
+                ]}
+              >
+                <Input.Password placeholder="Enter password" />
+              </Form.Item>
+            </Col>
+          </Row>
+        </Form>
+      </Modal>
+
+      {/* User Details Modal */}
+      <Modal
+        title={
+          <div className="flex items-center space-x-2">
+            <UserOutlined className="text-primary-500" />
+            <span>User Details</span>
+          </div>
+        }
+        open={userDetailsVisible}
+        onCancel={() => setUserDetailsVisible(false)}
+        width={800}
+        footer={[
+          <Button key="close" onClick={() => setUserDetailsVisible(false)}>
+            Close
+          </Button>,
+          <Button 
+            key="edit" 
+            type="primary" 
+            icon={<EditOutlined />}
+            onClick={() => {
+              setUserDetailsVisible(false)
+              handleEditUser(selectedUser)
+            }}
+          >
+            Edit User
+          </Button>
+        ]}
+      >
+        {selectedUser && (
+          <div className="space-y-6">
+            {/* User Header */}
+            <Card>
+              <Row gutter={[16, 16]} align="middle">
+                <Col span={16}>
+                  <div className="flex items-center space-x-4">
+                    <Avatar src={selectedUser.avatar} size={64}>
+                      {selectedUser.name.charAt(0)}
+                    </Avatar>
+                    <div>
+                      <h2 className="text-xl font-bold text-gray-900 mb-1">{selectedUser.name}</h2>
+                      <p className="text-gray-600 mb-2">{selectedUser.email}</p>
+                      <Space>
+                        <Tag color={getRoleColor(selectedUser.role)} icon={getRoleIcon(selectedUser.role)}>
+                          {selectedUser.role.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase())}
+                        </Tag>
+                        <Badge 
+                          status={getStatusColor(selectedUser.status) as any} 
+                          text={selectedUser.status.charAt(0).toUpperCase() + selectedUser.status.slice(1)}
                         />
-                      </div>
-                      <div className="ml-4">
-                        <div className="text-sm font-medium text-brand-charcoal">{user.name}</div>
-                        <div className="text-sm text-brand-lightGray">{user.email}</div>
-                        <div className="flex items-center space-x-2 text-xs text-brand-lightGray">
-                          {user.profile.phone && (
-                            <span className="flex items-center">
-                              <Phone size={12} className="mr-1" />
-                              {user.profile.phone}
-                            </span>
-                          )}
-                          {user.profile.company && (
-                            <span className="flex items-center">
-                              <UsersIcon size={12} className="mr-1" />
-                              {user.profile.company}
-                            </span>
-                          )}
-                        </div>
-                      </div>
+                      </Space>
                     </div>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getRoleColor(user.role)}`}>
-                      <Shield size={12} className="mr-1" />
-                      {user.role.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase())}
-                    </span>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getStatusColor(user.status)}`}>
-                      {user.status === 'active' && <CheckCircle size={12} className="mr-1" />}
-                      {user.status === 'suspended' && <XCircle size={12} className="mr-1" />}
-                      {user.status === 'pending' && <Clock size={12} className="mr-1" />}
-                      <span className="capitalize">{user.status}</span>
-                    </span>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="text-sm text-brand-charcoal">
-                      <div className="font-medium">{user.subscription?.plan || 'No Plan'}</div>
-                      {user.subscription && (
-                        <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${getSubscriptionStatusColor(user.subscription.status)}`}>
-                          {user.subscription.status}
-                        </span>
+                  </div>
+                </Col>
+                <Col span={8} className="text-right">
+                  <Space direction="vertical">
+                    <Button 
+                      icon={selectedUser.status === 'active' ? <LockOutlined /> : <UnlockOutlined />}
+                      onClick={() => handleStatusChange(
+                        selectedUser.id, 
+                        selectedUser.status === 'active' ? 'suspended' : 'active'
                       )}
+                    >
+                      {selectedUser.status === 'active' ? 'Suspend' : 'Activate'}
+                    </Button>
+                    <Button icon={<MailOutlined />}>
+                      Send Email
+                    </Button>
+                  </Space>
+                </Col>
+              </Row>
+            </Card>
+
+            {/* User Information */}
+            <Row gutter={[16, 16]}>
+              <Col span={12}>
+                <Card title="User Information">
+                  <Descriptions column={1} size="small">
+                    <Descriptions.Item label="User ID">{selectedUser.id}</Descriptions.Item>
+                    <Descriptions.Item label="Email">
+                      <MailOutlined className="mr-1" />
+                      {selectedUser.email}
+                    </Descriptions.Item>
+                    <Descriptions.Item label="Phone">
+                      <PhoneOutlined className="mr-1" />
+                      {selectedUser.phone}
+                    </Descriptions.Item>
+                    <Descriptions.Item label="Role">
+                      <Tag color={getRoleColor(selectedUser.role)}>
+                        {selectedUser.role.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase())}
+                      </Tag>
+                    </Descriptions.Item>
+                    <Descriptions.Item label="Status">
+                      <Badge 
+                        status={getStatusColor(selectedUser.status) as any} 
+                        text={selectedUser.status.charAt(0).toUpperCase() + selectedUser.status.slice(1)}
+                      />
+                    </Descriptions.Item>
+                    <Descriptions.Item label="Member Since">
+                      <CalendarOutlined className="mr-1" />
+                      {new Date(selectedUser.createdAt).toLocaleDateString()}
+                    </Descriptions.Item>
+                    <Descriptions.Item label="Last Login">
+                      <CalendarOutlined className="mr-1" />
+                      {selectedUser.lastLogin ? new Date(selectedUser.lastLogin).toLocaleString() : 'Never'}
+                    </Descriptions.Item>
+                  </Descriptions>
+                </Card>
+              </Col>
+              <Col span={12}>
+                <Card title="Activity Summary">
+                  <div className="space-y-4">
+                    <div className="flex justify-between items-center">
+                      <span>Total Orders:</span>
+                      <span className="font-bold">{selectedUser.totalOrders}</span>
                     </div>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-brand-lightGray">
-                    {user.lastLogin ? new Date(user.lastLogin).toLocaleDateString() : 'Never'}
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-brand-lightGray">
-                    {new Date(user.createdAt).toLocaleDateString()}
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                    <div className="flex items-center justify-end space-x-2">
-                      <button className="text-brand-orange hover:text-primary-600" title="View user">
-                        <Eye size={16} />
-                      </button>
-                      <button className="text-brand-charcoal hover:text-primary-600" title="Edit user">
-                        <Edit size={16} />
-                      </button>
-                      <button className="text-danger-600 hover:text-danger-800" title="Delete user">
-                        <Trash2 size={16} />
-                      </button>
+                    <div className="flex justify-between items-center">
+                      <span>Total Spent:</span>
+                      <span className="font-bold">₵{selectedUser.totalSpent.toLocaleString()}</span>
                     </div>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+                    <div className="flex justify-between items-center">
+                      <span>Average Order Value:</span>
+                      <span className="font-bold">
+                        ₵{selectedUser.totalOrders > 0 ? (selectedUser.totalSpent / selectedUser.totalOrders).toLocaleString() : '0'}
+                      </span>
         </div>
       </div>
+                </Card>
+              </Col>
+            </Row>
 
-      {/* Empty State */}
-      {filteredUsers.length === 0 && (
-        <div className="text-center py-12">
-          <UsersIcon size={48} className="text-brand-lightGray mx-auto mb-4" />
-          <h3 className="text-lg font-medium text-brand-charcoal mb-2">No users found</h3>
-          <p className="text-brand-lightGray mb-4">
-            {searchTerm || roleFilter !== 'all' || statusFilter !== 'all' 
-              ? 'Try adjusting your search or filters'
-              : 'Get started by adding your first user'
-            }
-          </p>
-          <button className="btn btn-primary">
-            <UserPlus size={16} className="mr-2" />
-            Add User
-          </button>
+            {/* Activity Timeline */}
+            <Card title="Recent Activity">
+              <Timeline
+                items={mockActivity.map((activity, index) => ({
+                  key: index,
+                  children: (
+                    <div className="flex justify-between items-start">
+                      <div>
+                        <div className="font-medium">{activity.action}</div>
+                        <div className="text-sm text-gray-500">IP: {activity.ip}</div>
+                      </div>
+                      <div className="text-sm text-gray-400">
+                        {new Date(activity.time).toLocaleString()}
+                      </div>
+                    </div>
+                  )
+                }))}
+              />
+            </Card>
         </div>
       )}
+      </Modal>
     </div>
   )
 }

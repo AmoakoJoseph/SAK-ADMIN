@@ -1,177 +1,286 @@
-import { useState } from 'react'
+import React, { useState } from 'react'
+import { 
+  Form, 
+  Input, 
+  Button, 
+  Card, 
+  Typography, 
+  Checkbox, 
+  Divider, 
+  Space, 
+  Alert,
+  Row,
+  Col,
+  App
+} from 'antd'
+import { 
+  UserOutlined, 
+  LockOutlined, 
+  EyeOutlined, 
+  EyeInvisibleOutlined,
+  GoogleOutlined,
+  FacebookOutlined,
+  LinkedinOutlined,
+  MailOutlined,
+  SafetyOutlined
+} from '@ant-design/icons'
 import { useNavigate } from 'react-router-dom'
-import { useAuth } from '../contexts/AuthContext'
-import { Eye, EyeOff, Lock, Mail, Building2 } from 'lucide-react'
-import toast from 'react-hot-toast'
+import { useDispatch } from 'react-redux'
+import { loginStart, loginSuccess, loginFailure } from '@/store/slices/authSlice'
 
-const Login = () => {
-  const [email, setEmail] = useState('')
-  const [password, setPassword] = useState('')
+const { Title, Text, Link } = Typography
+
+const Login: React.FC = () => {
+  const [loading, setLoading] = useState(false)
   const [showPassword, setShowPassword] = useState(false)
-  const [isSubmitting, setIsSubmitting] = useState(false)
-  
-  const { login } = useAuth()
+  const [rememberMe, setRememberMe] = useState(false)
+  const [form] = Form.useForm()
   const navigate = useNavigate()
+  const dispatch = useDispatch()
+  const { message } = App.useApp()
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    
-    if (!email || !password) {
-      toast.error('Please fill in all fields')
-      return
-    }
-
-    setIsSubmitting(true)
+  const handleLogin = async (values: any) => {
+    setLoading(true)
+    dispatch(loginStart())
     
     try {
-      const success = await login(email, password)
-      if (success) {
-        toast.success('Login successful!')
-        navigate('/')
-      } else {
-        toast.error('Invalid credentials. Please try again.')
+      // Simulate API call
+      await new Promise(resolve => setTimeout(resolve, 1500))
+      
+      // Mock successful login
+      const userData = {
+        id: '1',
+        name: 'John Doe',
+        email: values.email,
+        role: 'Super Admin',
+        avatar: undefined,
+        token: 'mock-jwt-token'
       }
+      
+      dispatch(loginSuccess(userData))
+      message.success('Login successful! Welcome back.')
+      
+      // Store in localStorage if remember me is checked
+      if (rememberMe) {
+        localStorage.setItem('user', JSON.stringify(userData))
+      }
+      
+      navigate('/')
     } catch (error) {
-      toast.error('Login failed. Please try again.')
+      dispatch(loginFailure('Invalid email or password'))
+      message.error('Login failed. Please check your credentials.')
     } finally {
-      setIsSubmitting(false)
+      setLoading(false)
     }
   }
 
+  const handleForgotPassword = () => {
+    navigate('/forgot-password')
+  }
+
+  const handleSocialLogin = (provider: string) => {
+    message.info(`${provider} login will be implemented soon.`)
+  }
+
+  const handleDemoLogin = () => {
+    form.setFieldsValue({
+      email: 'admin@sakconstructions.com',
+      password: 'admin123'
+    })
+  }
+
   return (
-    <div className="min-h-screen bg-gray-50 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
-      <div className="sm:mx-auto sm:w-full sm:max-w-md">
-        <div className="flex justify-center">
-          <div className="w-12 h-12 bg-primary-600 rounded-lg flex items-center justify-center">
-            <Building2 className="w-8 h-8 text-white" />
+    <div className="min-h-screen bg-gradient-to-br from-orange-50 to-orange-100 flex items-center justify-center p-4">
+      <div className="w-full max-w-md">
+        {/* Logo and Brand */}
+        <div className="text-center mb-8">
+          <div className="mb-4">
+            <div className="w-16 h-16 bg-orange-500 rounded-full flex items-center justify-center mx-auto mb-4">
+              <SafetyOutlined className="text-white text-2xl" />
+            </div>
+            <Title level={2} className="text-gray-800 mb-2">
+              SAK CONSTRUCTIONS GH
+            </Title>
+            <Text type="secondary" className="text-lg">
+              Admin Interface
+            </Text>
           </div>
         </div>
-        <h2 className="mt-6 text-center text-3xl font-bold tracking-tight text-gray-900">
-          SAK Admin Portal
-        </h2>
-        <p className="mt-2 text-center text-sm text-gray-600">
-          Sign in to your admin account
-        </p>
-      </div>
 
-      <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
-        <div className="bg-white py-8 px-4 shadow sm:rounded-lg sm:px-10">
-          <form className="space-y-6" onSubmit={handleSubmit}>
-            <div>
-              <label htmlFor="email" className="block text-sm font-medium text-gray-700">
-                Email address
-              </label>
-              <div className="mt-1 relative">
-                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                  <Mail className="h-5 w-5 text-gray-400" />
-                </div>
-                <input
-                  id="email"
-                  name="email"
-                  type="email"
-                  autoComplete="email"
-                  required
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  className="input pl-10"
-                  placeholder="admin@sakconstructions.com"
-                />
-              </div>
-            </div>
-
-            <div>
-              <label htmlFor="password" className="block text-sm font-medium text-gray-700">
-                Password
-              </label>
-              <div className="mt-1 relative">
-                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                  <Lock className="h-5 w-5 text-gray-400" />
-                </div>
-                <input
-                  id="password"
-                  name="password"
-                  type={showPassword ? 'text' : 'password'}
-                  autoComplete="current-password"
-                  required
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  className="input pl-10 pr-10"
-                  placeholder="Enter your password"
-                />
-                <button
-                  type="button"
-                  className="absolute inset-y-0 right-0 pr-3 flex items-center"
-                  onClick={() => setShowPassword(!showPassword)}
-                >
-                  {showPassword ? (
-                    <EyeOff className="h-5 w-5 text-gray-400" />
-                  ) : (
-                    <Eye className="h-5 w-5 text-gray-400" />
-                  )}
-                </button>
-              </div>
-            </div>
-
-            <div className="flex items-center justify-between">
-              <div className="flex items-center">
-                <input
-                  id="remember-me"
-                  name="remember-me"
-                  type="checkbox"
-                  className="h-4 w-4 text-primary-600 focus:ring-primary-500 border-gray-300 rounded"
-                />
-                <label htmlFor="remember-me" className="ml-2 block text-sm text-gray-900">
-                  Remember me
-                </label>
-              </div>
-
-              <div className="text-sm">
-                <a href="#" className="font-medium text-primary-600 hover:text-primary-500">
-                  Forgot your password?
-                </a>
-              </div>
-            </div>
-
-            <div>
-              <button
-                type="submit"
-                disabled={isSubmitting}
-                className="btn btn-primary w-full btn-lg"
-              >
-                {isSubmitting ? (
-                  <div className="flex items-center">
-                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-                    Signing in...
-                  </div>
-                ) : (
-                  'Sign in'
-                )}
-              </button>
-            </div>
-          </form>
-
-          <div className="mt-6">
-            <div className="relative">
-              <div className="absolute inset-0 flex items-center">
-                <div className="w-full border-t border-gray-300" />
-              </div>
-              <div className="relative flex justify-center text-sm">
-                <span className="px-2 bg-white text-gray-500">Demo Credentials</span>
-              </div>
-            </div>
-
-            <div className="mt-6 bg-gray-50 p-4 rounded-lg">
-              <p className="text-sm text-gray-600 mb-2">Use these credentials to test the admin panel:</p>
-              <div className="space-y-1 text-sm">
-                <p><span className="font-medium">Email:</span> admin@sakconstructions.com</p>
-                <p><span className="font-medium">Password:</span> admin123</p>
-              </div>
-            </div>
+        {/* Login Card */}
+        <Card className="shadow-lg border-0">
+          <div className="mb-6">
+            <Title level={3} className="text-center mb-2">
+              Welcome Back
+            </Title>
+            <Text type="secondary" className="text-center block">
+              Sign in to your account to continue
+            </Text>
           </div>
+
+          {/* Demo Login Alert */}
+          <Alert
+            message="Demo Account"
+            description="Use admin@sakconstructions.com / admin123 for demo access"
+            type="info"
+            showIcon
+            className="mb-6"
+            action={
+              <Button size="small" type="link" onClick={handleDemoLogin}>
+                Fill Demo
+              </Button>
+            }
+          />
+
+          {/* Login Form */}
+          <Form
+            form={form}
+            layout="vertical"
+            onFinish={handleLogin}
+            initialValues={{
+              email: '',
+              password: '',
+              rememberMe: false
+            }}
+          >
+            <Form.Item
+              name="email"
+              label="Email Address"
+              rules={[
+                { required: true, message: 'Please enter your email' },
+                { type: 'email', message: 'Please enter a valid email' }
+              ]}
+            >
+              <Input 
+                prefix={<MailOutlined className="text-gray-400" />}
+                placeholder="Enter your email"
+                size="large"
+              />
+            </Form.Item>
+
+            <Form.Item
+              name="password"
+              label="Password"
+              rules={[
+                { required: true, message: 'Please enter your password' },
+                { min: 6, message: 'Password must be at least 6 characters' }
+              ]}
+            >
+              <Input.Password
+                prefix={<LockOutlined className="text-gray-400" />}
+                placeholder="Enter your password"
+                size="large"
+                iconRender={(visible) => 
+                  visible ? <EyeOutlined /> : <EyeInvisibleOutlined />
+                }
+              />
+            </Form.Item>
+
+            <Form.Item>
+              <div className="flex justify-between items-center">
+                <Form.Item name="rememberMe" valuePropName="checked" noStyle>
+                  <Checkbox 
+                    checked={rememberMe}
+                    onChange={(e) => setRememberMe(e.target.checked)}
+                  >
+                    Remember me
+                  </Checkbox>
+                </Form.Item>
+                <Button 
+                  type="link" 
+                  className="p-0"
+                  onClick={handleForgotPassword}
+                >
+                  Forgot password?
+                </Button>
+              </div>
+            </Form.Item>
+
+            <Form.Item>
+              <Button 
+                type="primary" 
+                htmlType="submit" 
+                loading={loading}
+                size="large"
+                block
+                className="bg-orange-500 hover:bg-orange-600 border-orange-500"
+              >
+                {loading ? 'Signing in...' : 'Sign In'}
+              </Button>
+            </Form.Item>
+          </Form>
+
+          {/* Divider */}
+          <Divider>
+            <Text type="secondary">or continue with</Text>
+          </Divider>
+
+          {/* Social Login */}
+          <Space direction="vertical" className="w-full">
+            <Button 
+              icon={<GoogleOutlined />}
+              size="large"
+              block
+              onClick={() => handleSocialLogin('Google')}
+              className="border-gray-300 text-gray-700 hover:border-gray-400"
+            >
+              Continue with Google
+            </Button>
+            
+            <Row gutter={8}>
+              <Col span={12}>
+                <Button 
+                  icon={<FacebookOutlined />}
+                  size="large"
+                  block
+                  onClick={() => handleSocialLogin('Facebook')}
+                  className="border-blue-500 text-blue-600 hover:border-blue-600"
+                >
+                  Facebook
+                </Button>
+              </Col>
+              <Col span={12}>
+                <Button 
+                  icon={<LinkedinOutlined />}
+                  size="large"
+                  block
+                  onClick={() => handleSocialLogin('LinkedIn')}
+                  className="border-blue-600 text-blue-700 hover:border-blue-700"
+                >
+                  LinkedIn
+                </Button>
+              </Col>
+            </Row>
+          </Space>
+
+          {/* Footer */}
+          <div className="mt-8 text-center">
+            <Text type="secondary">
+              Don't have an account?{' '}
+              <Link href="#" className="text-orange-500">
+                Contact administrator
+              </Link>
+            </Text>
+          </div>
+        </Card>
+
+        {/* Footer Links */}
+        <div className="mt-6 text-center">
+          <Space split={<Divider type="vertical" />}>
+            <Link href="#" className="text-gray-500 text-sm">
+              Privacy Policy
+            </Link>
+            <Link href="#" className="text-gray-500 text-sm">
+              Terms of Service
+            </Link>
+            <Link href="#" className="text-gray-500 text-sm">
+              Support
+            </Link>
+          </Space>
         </div>
       </div>
     </div>
   )
 }
 
-export default Login 
+export default Login

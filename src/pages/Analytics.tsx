@@ -1,424 +1,567 @@
-import { useState, useEffect } from 'react'
+import React, { useState } from 'react'
 import { 
-  TrendingUp, 
-  TrendingDown, 
-  Users, 
-  FileText, 
-  ShoppingCart, 
-  DollarSign,
-  Calendar,
-  Download,
-  BarChart3,
+  Card, 
+  Button, 
+  Row, 
+  Col, 
+  Statistic, 
+  Select, 
+  DatePicker, 
+  Space,
+  Table,
+  Tabs,
+  Progress,
+  List,
+  Avatar,
+  Tag,
+  Badge,
+  Modal,
+  Form,
+  Input,
+  Checkbox,
+  message,
+  Tooltip,
+  Divider
+} from 'antd'
+import { 
+  BarChartOutlined, 
+  LineChartOutlined,
+  PieChartOutlined,
+  DownloadOutlined,
+  PrinterOutlined,
+  EyeOutlined,
+  DollarOutlined,
+  UserOutlined,
+  ShoppingCartOutlined,
+  FileTextOutlined,
+  RiseOutlined,
+  ArrowDownOutlined,
+  CalendarOutlined,
+  FilterOutlined,
+  ReloadOutlined,
+  SettingOutlined
+} from '@ant-design/icons'
+import { 
+  LineChart, 
+  Line, 
+  BarChart, 
+  Bar, 
   PieChart,
-  Activity,
-  Eye,
-  Clock,
-  CheckCircle,
-  XCircle
-} from 'lucide-react'
-import { adminAnalyticsService } from '../services/admin/adminAnalytics'
+  Pie, 
+  Cell,
+  XAxis, 
+  YAxis, 
+  CartesianGrid, 
+  Tooltip as RechartsTooltip, 
+  ResponsiveContainer,
+  AreaChart,
+  Area,
+  Legend
+} from 'recharts'
 
-const Analytics = () => {
-  const [loading, setLoading] = useState(true)
-  const [dateRange, setDateRange] = useState('30d')
-  const [selectedMetric, setSelectedMetric] = useState('revenue')
+const { Option } = Select
+const { RangePicker } = DatePicker
 
-  useEffect(() => {
-    fetchAnalytics()
-  }, [dateRange])
 
-  const fetchAnalytics = async () => {
+const Analytics: React.FC = () => {
+  const [dateRange, setDateRange] = useState<[string, string]>(['2024-01-01', '2024-01-31'])
+  const [selectedPeriod, setSelectedPeriod] = useState('30')
+  const [reportModalVisible, setReportModalVisible] = useState(false)
+  const [form] = Form.useForm()
+
+  // Mock data for charts
+  const revenueData = [
+    { month: 'Jan', revenue: 125000, orders: 45, users: 120 },
+    { month: 'Feb', revenue: 98000, orders: 38, users: 95 },
+    { month: 'Mar', revenue: 145000, orders: 52, users: 140 },
+    { month: 'Apr', revenue: 132000, orders: 48, users: 125 },
+    { month: 'May', revenue: 168000, orders: 62, users: 155 },
+    { month: 'Jun', revenue: 189000, orders: 68, users: 175 }
+  ]
+
+  const planPerformanceData = [
+    { name: 'Modern Villa', sales: 45, revenue: 112500, growth: 12.5 },
+    { name: 'Cozy Bungalow', sales: 38, revenue: 68400, growth: 8.3 },
+    { name: 'Luxury Townhouse', sales: 32, revenue: 102400, growth: 15.2 },
+    { name: 'Rustic Cottage', sales: 28, revenue: 42000, growth: 5.8 },
+    { name: 'Farmhouse Design', sales: 22, revenue: 44000, growth: 3.2 }
+  ]
+
+  const userActivityData = [
+    { name: 'New Registrations', value: 45, color: '#4A90E2' },
+    { name: 'Active Users', value: 120, color: '#50C878' },
+    { name: 'Returning Users', value: 85, color: '#FF6B6B' },
+    { name: 'Inactive Users', value: 30, color: '#FFD93D' }
+  ]
+
+  const paymentMethodData = [
+    { name: 'Mobile Money', value: 65, color: '#4A90E2' },
+    { name: 'Bank Transfer', value: 25, color: '#50C878' },
+    { name: 'Credit Card', value: 10, color: '#FF6B6B' }
+  ]
+
+  const topCustomers = [
+    {
+      id: '1',
+      name: 'John Doe',
+      email: 'john.doe@example.com',
+      totalSpent: 45000,
+      orders: 15,
+      lastOrder: '2024-01-20',
+      status: 'active'
+    },
+    {
+      id: '2',
+      name: 'Jane Smith',
+      email: 'jane.smith@example.com',
+      totalSpent: 38000,
+      orders: 12,
+      lastOrder: '2024-01-19',
+      status: 'active'
+    },
+    {
+      id: '3',
+      name: 'Mike Johnson',
+      email: 'mike.johnson@example.com',
+      totalSpent: 32000,
+      orders: 8,
+      lastOrder: '2024-01-18',
+      status: 'active'
+    },
+    {
+      id: '4',
+      name: 'Sarah Wilson',
+      email: 'sarah.wilson@example.com',
+      totalSpent: 28000,
+      orders: 10,
+      lastOrder: '2024-01-17',
+      status: 'inactive'
+    }
+  ]
+
+  const recentActivity = [
+    {
+      id: '1',
+      action: 'New order placed',
+      details: 'Modern Villa Plan - ₵2,500',
+      time: '2 hours ago',
+      user: 'John Doe',
+      type: 'order'
+    },
+    {
+      id: '2',
+      action: 'Payment received',
+      details: 'Payment of ₵1,800 via Mobile Money',
+      time: '4 hours ago',
+      user: 'Jane Smith',
+      type: 'payment'
+    },
+    {
+      id: '3',
+      action: 'New user registered',
+      details: 'User: mike.johnson@example.com',
+      time: '6 hours ago',
+      user: 'System',
+      type: 'user'
+    },
+    {
+      id: '4',
+      action: 'Plan updated',
+      details: 'Luxury Townhouse plan modified',
+      time: '8 hours ago',
+      user: 'Admin',
+      type: 'plan'
+    }
+  ]
+
+  const getGrowthIcon = (growth: number) => {
+    return growth >= 0 ? <RiseOutlined /> : <ArrowDownOutlined />
+  }
+
+  const getActivityIcon = (type: string) => {
+    switch (type) {
+      case 'order':
+        return <ShoppingCartOutlined style={{ color: '#1890ff' }} />
+      case 'payment':
+        return <DollarOutlined style={{ color: '#52c41a' }} />
+      case 'user':
+        return <UserOutlined style={{ color: '#722ed1' }} />
+      case 'plan':
+        return <FileTextOutlined style={{ color: '#fa8c16' }} />
+      default:
+        return <FileTextOutlined />
+    }
+  }
+
+  const [loading, setLoading] = useState(false)
+
+  const handleGenerateReport = async () => {
     try {
+      const values = await form.validateFields()
       setLoading(true)
-      // Mock data - replace with real API calls
-      await new Promise(resolve => setTimeout(resolve, 1000))
+      // Simulate report generation
+      await new Promise(resolve => setTimeout(resolve, 2000))
+      message.success('Report generated successfully!')
+      setReportModalVisible(false)
     } catch (error) {
-      console.error('Error fetching analytics:', error)
+      message.error('Failed to generate report')
     } finally {
       setLoading(false)
     }
   }
 
-  // Mock data for demonstration
-  const mockData = {
-    revenue: {
-      total: 125000,
-      change: 12.5,
-      trend: 'up',
-      data: [
-        { month: 'Jan', value: 85000 },
-        { month: 'Feb', value: 92000 },
-        { month: 'Mar', value: 105000 },
-        { month: 'Apr', value: 98000 },
-        { month: 'May', value: 112000 },
-        { month: 'Jun', value: 125000 }
-      ]
+  const customerColumns = [
+    {
+      title: 'Customer',
+      dataIndex: 'name',
+      key: 'name',
+      render: (text: string, record: any) => (
+        <div>
+          <div className="font-medium">{text}</div>
+          <div className="text-gray-500 text-sm">{record.email}</div>
+        </div>
+      ),
     },
-    orders: {
-      total: 156,
-      change: 8.3,
-      trend: 'up',
-      data: [
-        { month: 'Jan', value: 120 },
-        { month: 'Feb', value: 135 },
-        { month: 'Mar', value: 142 },
-        { month: 'Apr', value: 138 },
-        { month: 'May', value: 149 },
-        { month: 'Jun', value: 156 }
-      ]
+    {
+      title: 'Total Spent',
+      dataIndex: 'totalSpent',
+      key: 'totalSpent',
+      render: (value: number) => `₵${value.toLocaleString()}`,
     },
-    users: {
-      total: 2847,
-      change: 15.2,
-      trend: 'up',
-      data: [
-        { month: 'Jan', value: 2100 },
-        { month: 'Feb', value: 2250 },
-        { month: 'Mar', value: 2400 },
-        { month: 'Apr', value: 2550 },
-        { month: 'May', value: 2700 },
-        { month: 'Jun', value: 2847 }
-      ]
+    {
+      title: 'Orders',
+      dataIndex: 'orders',
+      key: 'orders',
     },
-    plans: {
-      total: 89,
-      change: -2.1,
-      trend: 'down',
-      data: [
-        { month: 'Jan', value: 95 },
-        { month: 'Feb', value: 92 },
-        { month: 'Mar', value: 88 },
-        { month: 'Apr', value: 85 },
-        { month: 'May', value: 87 },
-        { month: 'Jun', value: 89 }
-      ]
-    }
-  }
-
-  const topPlans = [
-    { name: 'Modern Villa Design', revenue: 45000, orders: 18, conversion: 12.5 },
-    { name: 'Commercial Office Complex', revenue: 38000, orders: 8, conversion: 8.2 },
-    { name: 'Sustainable Home', revenue: 32000, orders: 14, conversion: 10.8 },
-    { name: 'Landscape Garden Design', revenue: 28000, orders: 23, conversion: 15.3 }
+    {
+      title: 'Last Order',
+      dataIndex: 'lastOrder',
+      key: 'lastOrder',
+    },
+    {
+      title: 'Status',
+      dataIndex: 'status',
+      key: 'status',
+      render: (status: string) => (
+        <Tag color={status === 'active' ? 'green' : 'default'}>
+          {status}
+        </Tag>
+      ),
+    },
   ]
 
-  const topCategories = [
-    { name: 'Residential', revenue: 85000, percentage: 68 },
-    { name: 'Commercial', revenue: 28000, percentage: 22.4 },
-    { name: 'Landscape', revenue: 12000, percentage: 9.6 }
+  const activityColumns = [
+    {
+      title: 'Activity',
+      dataIndex: 'action',
+      key: 'action',
+      render: (text: string, record: any) => (
+        <div className="flex items-center space-x-2">
+          {getActivityIcon(record.type)}
+          <span className="font-medium">{text}</span>
+        </div>
+      ),
+    },
+    {
+      title: 'Details',
+      dataIndex: 'details',
+      key: 'details',
+    },
+    {
+      title: 'Time',
+      dataIndex: 'time',
+      key: 'time',
+    },
+    {
+      title: 'User',
+      dataIndex: 'user',
+      key: 'user',
+    },
   ]
-
-  const recentActivity = [
-    { type: 'order', description: 'New order #ORD-2024-005 received', time: '2 minutes ago', status: 'success' },
-    { type: 'user', description: 'New user registration: alice@example.com', time: '15 minutes ago', status: 'info' },
-    { type: 'plan', description: 'Plan "Modern Villa Design" updated', time: '1 hour ago', status: 'success' },
-    { type: 'payment', description: 'Payment failed for order #ORD-2024-004', time: '2 hours ago', status: 'error' },
-    { type: 'user', description: 'User bob.wilson@example.com suspended', time: '3 hours ago', status: 'warning' }
-  ]
-
-  const getActivityIcon = (type: string) => {
-    switch (type) {
-      case 'order':
-        return <ShoppingCart size={16} />
-      case 'user':
-        return <Users size={16} />
-      case 'plan':
-        return <FileText size={16} />
-      case 'payment':
-        return <DollarSign size={16} />
-      default:
-        return <Activity size={16} />
-    }
-  }
-
-  const getActivityStatusColor = (status: string) => {
-    switch (status) {
-      case 'success':
-        return 'text-success-600'
-      case 'error':
-        return 'text-danger-600'
-      case 'warning':
-        return 'text-warning-600'
-      case 'info':
-        return 'text-info-600'
-      default:
-        return 'text-brand-lightGray'
-    }
-  }
-
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center h-64">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-brand-orange"></div>
-      </div>
-    )
-  }
 
   return (
-    <div className="space-y-6">
-      {/* Page Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold text-brand-charcoal">Analytics & Reports</h1>
-          <p className="text-brand-lightGray">Comprehensive insights into your business performance</p>
-        </div>
-        <div className="flex items-center space-x-3">
-          <select
-            value={dateRange}
-            onChange={(e) => setDateRange(e.target.value)}
-            className="px-3 py-2 border border-brand-lightGray rounded-md focus:outline-none focus:ring-2 focus:ring-brand-orange focus:border-transparent"
-          >
-            <option value="7d">Last 7 days</option>
-            <option value="30d">Last 30 days</option>
-            <option value="90d">Last 90 days</option>
-            <option value="1y">Last year</option>
-          </select>
-          <button className="btn btn-secondary flex items-center space-x-2">
-            <Download size={16} />
-            <span>Export Report</span>
-          </button>
+    <div className="p-6">
+      <div className="mb-6">
+        <div className="flex justify-between items-center">
+            <div>
+            <h1 className="text-2xl font-bold text-gray-800 mb-2">Analytics & Reports</h1>
+            <p className="text-gray-600">Comprehensive business intelligence and reporting</p>
+          </div>
+          <Space>
+            <Button icon={<DownloadOutlined />}>
+              Export Data
+            </Button>
+            <Button icon={<PrinterOutlined />}>
+              Print Report
+            </Button>
+            <Button type="primary" icon={<BarChartOutlined />} onClick={() => setReportModalVisible(true)}>
+              Generate Report
+            </Button>
+          </Space>
         </div>
       </div>
+
+      {/* Filters */}
+      <Card className="mb-6">
+        <Row gutter={[16, 16]} align="middle">
+          <Col xs={24} sm={12} md={6}>
+            <Select
+              value={selectedPeriod}
+              onChange={setSelectedPeriod}
+              style={{ width: '100%' }}
+            >
+              <Option value="7">Last 7 Days</Option>
+              <Option value="30">Last 30 Days</Option>
+              <Option value="90">Last 90 Days</Option>
+              <Option value="365">Last Year</Option>
+            </Select>
+          </Col>
+          <Col xs={24} sm={12} md={8}>
+            <RangePicker 
+              style={{ width: '100%' }}
+              onChange={(dates) => {
+                if (dates && dates[0] && dates[1]) {
+                  setDateRange([dates[0].toISOString(), dates[1].toISOString()])
+                }
+              }}
+            />
+          </Col>
+          <Col xs={24} sm={12} md={6}>
+            <Button icon={<FilterOutlined />} block>
+              Apply Filters
+            </Button>
+          </Col>
+        </Row>
+      </Card>
 
       {/* Key Metrics */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-        <div className="bg-white rounded-lg shadow-sm border border-brand-lightGray p-6">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm font-medium text-brand-lightGray">Total Revenue</p>
-              <p className="text-2xl font-bold text-brand-charcoal">${mockData.revenue.total.toLocaleString()}</p>
-            </div>
-            <div className="p-3 bg-primary-50 rounded-lg">
-              <DollarSign size={24} className="text-brand-orange" />
-            </div>
-          </div>
-          <div className="mt-4 flex items-center space-x-2">
-            {mockData.revenue.trend === 'up' ? (
-              <TrendingUp size={16} className="text-success-600" />
-            ) : (
-              <TrendingDown size={16} className="text-danger-600" />
-            )}
-            <span className={`text-sm font-medium ${mockData.revenue.trend === 'up' ? 'text-success-600' : 'text-danger-600'}`}>
-              {mockData.revenue.change > 0 ? '+' : ''}{mockData.revenue.change}%
-            </span>
-            <span className="text-sm text-brand-lightGray">vs last period</span>
-          </div>
-        </div>
-
-        <div className="bg-white rounded-lg shadow-sm border border-brand-lightGray p-6">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm font-medium text-brand-lightGray">Total Orders</p>
-              <p className="text-2xl font-bold text-brand-charcoal">{mockData.orders.total}</p>
-            </div>
-            <div className="p-3 bg-primary-50 rounded-lg">
-              <ShoppingCart size={24} className="text-brand-orange" />
-            </div>
-          </div>
-          <div className="mt-4 flex items-center space-x-2">
-            {mockData.orders.trend === 'up' ? (
-              <TrendingUp size={16} className="text-success-600" />
-            ) : (
-              <TrendingDown size={16} className="text-danger-600" />
-            )}
-            <span className={`text-sm font-medium ${mockData.orders.trend === 'up' ? 'text-success-600' : 'text-danger-600'}`}>
-              {mockData.orders.change > 0 ? '+' : ''}{mockData.orders.change}%
-            </span>
-            <span className="text-sm text-brand-lightGray">vs last period</span>
-          </div>
-        </div>
-
-        <div className="bg-white rounded-lg shadow-sm border border-brand-lightGray p-6">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm font-medium text-brand-lightGray">Total Users</p>
-              <p className="text-2xl font-bold text-brand-charcoal">{mockData.users.total.toLocaleString()}</p>
-            </div>
-            <div className="p-3 bg-primary-50 rounded-lg">
-              <Users size={24} className="text-brand-orange" />
-            </div>
-          </div>
-          <div className="mt-4 flex items-center space-x-2">
-            {mockData.users.trend === 'up' ? (
-              <TrendingUp size={16} className="text-success-600" />
-            ) : (
-              <TrendingDown size={16} className="text-danger-600" />
-            )}
-            <span className={`text-sm font-medium ${mockData.users.trend === 'up' ? 'text-success-600' : 'text-danger-600'}`}>
-              {mockData.users.change > 0 ? '+' : ''}{mockData.users.change}%
-            </span>
-            <span className="text-sm text-brand-lightGray">vs last period</span>
-          </div>
-        </div>
-
-        <div className="bg-white rounded-lg shadow-sm border border-brand-lightGray p-6">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm font-medium text-brand-lightGray">Active Plans</p>
-              <p className="text-2xl font-bold text-brand-charcoal">{mockData.plans.total}</p>
-            </div>
-            <div className="p-3 bg-primary-50 rounded-lg">
-              <FileText size={24} className="text-brand-orange" />
-            </div>
-          </div>
-          <div className="mt-4 flex items-center space-x-2">
-            {mockData.plans.trend === 'up' ? (
-              <TrendingUp size={16} className="text-success-600" />
-            ) : (
-              <TrendingDown size={16} className="text-danger-600" />
-            )}
-            <span className={`text-sm font-medium ${mockData.plans.trend === 'up' ? 'text-success-600' : 'text-danger-600'}`}>
-              {mockData.plans.change > 0 ? '+' : ''}{mockData.plans.change}%
-            </span>
-            <span className="text-sm text-brand-lightGray">vs last period</span>
-          </div>
-        </div>
-      </div>
+      <Row gutter={[16, 16]}>
+        <Col xs={24} sm={12} lg={6}>
+          <Card>
+            <Statistic
+              title="Total Revenue"
+              value={3125000}
+              prefix="₵"
+              valueStyle={{ color: '#f97316' }}
+              suffix={
+                <span className="text-green-500 text-sm ml-2">
+                  <RiseOutlined /> +15.2%
+                </span>
+              }
+            />
+          </Card>
+        </Col>
+        <Col xs={24} sm={12} lg={6}>
+          <Card>
+            <Statistic
+              title="Total Orders"
+              value={1247}
+              valueStyle={{ color: '#2d3748' }}
+              suffix={
+                <span className="text-green-500 text-sm ml-2">
+                  <RiseOutlined /> +8.3%
+                </span>
+              }
+            />
+          </Card>
+        </Col>
+        <Col xs={24} sm={12} lg={6}>
+          <Card>
+            <Statistic
+              title="Active Users"
+              value={2891}
+              valueStyle={{ color: '#2d3748' }}
+              suffix={
+                <span className="text-green-500 text-sm ml-2">
+                  <RiseOutlined /> +12.1%
+                </span>
+              }
+            />
+          </Card>
+        </Col>
+        <Col xs={24} sm={12} lg={6}>
+          <Card>
+            <Statistic
+              title="Conversion Rate"
+              value={4.8}
+              valueStyle={{ color: '#2d3748' }}
+              suffix={
+                <span>
+                  <span>%</span>
+                  <span className="text-green-500 text-sm ml-2">
+                    <RiseOutlined /> +2.1%
+                  </span>
+                </span>
+              }
+            />
+          </Card>
+        </Col>
+      </Row>
 
       {/* Charts Section */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Revenue Chart */}
-        <div className="bg-white rounded-lg shadow-sm border border-brand-lightGray p-6">
-          <div className="flex items-center justify-between mb-6">
-            <h3 className="text-lg font-semibold text-brand-charcoal">Revenue Trend</h3>
-            <div className="flex items-center space-x-2">
-              <button
-                onClick={() => setSelectedMetric('revenue')}
-                className={`px-3 py-1 text-sm rounded-md ${
-                  selectedMetric === 'revenue' 
-                    ? 'bg-brand-orange text-white' 
-                    : 'bg-primary-50 text-brand-charcoal hover:bg-primary-100'
-                }`}
-              >
-                Revenue
-              </button>
-              <button
-                onClick={() => setSelectedMetric('orders')}
-                className={`px-3 py-1 text-sm rounded-md ${
-                  selectedMetric === 'orders' 
-                    ? 'bg-brand-orange text-white' 
-                    : 'bg-primary-50 text-brand-charcoal hover:bg-primary-100'
-                }`}
-              >
-                Orders
-              </button>
-            </div>
-          </div>
-          <div className="h-64 flex items-center justify-center bg-primary-50 rounded-lg">
-            <div className="text-center">
-              <BarChart3 size={48} className="text-brand-lightGray mx-auto mb-2" />
-              <p className="text-brand-lightGray">Chart will be displayed here</p>
-              <p className="text-sm text-brand-lightGray">Integrate with Recharts or Chart.js</p>
-            </div>
-          </div>
-        </div>
+      <Tabs 
+        defaultActiveKey="overview" 
+        type="card"
+        items={[
+          {
+            key: 'overview',
+            label: 'Overview',
+            children: (
+              <Row gutter={[16, 16]}>
+                <Col xs={24} lg={16}>
+                  <Card title="Revenue Trend" className="h-80">
+                    <ResponsiveContainer width="100%" height="100%">
+                      <AreaChart data={revenueData}>
+                        <CartesianGrid strokeDasharray="3 3" />
+                        <XAxis dataKey="month" />
+                        <YAxis />
+                        <RechartsTooltip 
+                          formatter={(value: any) => [`₵${value.toLocaleString()}`, 'Revenue']}
+                        />
+                        <Area 
+                          type="monotone" 
+                          dataKey="revenue" 
+                          stroke="#f97316" 
+                          fill="#f97316" 
+                          fillOpacity={0.3}
+                        />
+                      </AreaChart>
+                    </ResponsiveContainer>
+                  </Card>
+                </Col>
+                <Col xs={24} lg={8}>
+                  <Card title="Payment Methods" className="h-80">
+                    <ResponsiveContainer width="100%" height="100%">
+                      <PieChart>
+                        <Pie
+                          data={paymentMethodData}
+                          cx="50%"
+                          cy="50%"
+                          labelLine={false}
+                          label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
+                          outerRadius={80}
+                          fill="#8884d8"
+                          dataKey="value"
+                        >
+                          {paymentMethodData.map((entry, index) => (
+                            <Cell key={`cell-${index}`} fill={entry.color} />
+                          ))}
+                        </Pie>
+                        <RechartsTooltip />
+                      </PieChart>
+                    </ResponsiveContainer>
+                  </Card>
+                </Col>
+                <Col xs={24} lg={12}>
+                  <Card title="Top Customers">
+                    <Table
+                      columns={customerColumns}
+                      dataSource={topCustomers}
+                      rowKey="id"
+                      pagination={false}
+                      size="small"
+                    />
+                  </Card>
+                </Col>
+              </Row>
+            )
+          },
+          {
+            key: 'activity',
+            label: 'Recent Activity',
+            children: (
+              <Card title="System Activity">
+                <Table
+                  columns={activityColumns}
+                  dataSource={recentActivity}
+                  rowKey="id"
+                  pagination={false}
+                  size="small"
+                />
+              </Card>
+            )
+          }
+        ]}
+      />
 
-        {/* Category Distribution */}
-        <div className="bg-white rounded-lg shadow-sm border border-brand-lightGray p-6">
-          <h3 className="text-lg font-semibold text-brand-charcoal mb-6">Revenue by Category</h3>
-          <div className="space-y-4">
-            {topCategories.map((category, index) => (
-              <div key={index} className="flex items-center justify-between">
-                <div className="flex items-center space-x-3">
-                  <div className="w-4 h-4 rounded-full bg-primary-500"></div>
-                  <span className="text-sm font-medium text-brand-charcoal">{category.name}</span>
-                </div>
-                <div className="text-right">
-                  <div className="text-sm font-medium text-brand-charcoal">${category.revenue.toLocaleString()}</div>
-                  <div className="text-xs text-brand-lightGray">{category.percentage}%</div>
-                </div>
-              </div>
-            ))}
-          </div>
-          <div className="mt-6 h-32 flex items-center justify-center bg-primary-50 rounded-lg">
-            <div className="text-center">
-              <PieChart size={32} className="text-brand-lightGray mx-auto mb-2" />
-              <p className="text-sm text-brand-lightGray">Pie chart visualization</p>
-            </div>
-          </div>
-        </div>
-      </div>
+      {/* Report Generation Modal */}
+      <Modal
+        title="Generate Custom Report"
+        open={reportModalVisible}
+        onOk={handleGenerateReport}
+        onCancel={() => setReportModalVisible(false)}
+        width={600}
+        okText="Generate Report"
+        cancelText="Cancel"
+      >
+        <Form
+          form={form}
+          layout="vertical"
+          initialValues={{
+            reportType: 'revenue',
+            includeCharts: true,
+            includeTables: true
+          }}
+        >
+          <Form.Item
+            name="reportName"
+            label="Report Name"
+            rules={[{ required: true, message: 'Please enter report name' }]}
+          >
+            <Input placeholder="Enter report name" />
+          </Form.Item>
 
-      {/* Top Plans and Recent Activity */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Top Performing Plans */}
-        <div className="bg-white rounded-lg shadow-sm border border-brand-lightGray p-6">
-          <h3 className="text-lg font-semibold text-brand-charcoal mb-6">Top Performing Plans</h3>
-          <div className="space-y-4">
-            {topPlans.map((plan, index) => (
-              <div key={index} className="flex items-center justify-between p-3 bg-primary-50 rounded-lg">
-                <div className="flex-1">
-                  <div className="text-sm font-medium text-brand-charcoal">{plan.name}</div>
-                  <div className="text-xs text-brand-lightGray">
-                    {plan.orders} orders • {plan.conversion}% conversion
-                  </div>
-                </div>
-                <div className="text-right">
-                  <div className="text-sm font-bold text-brand-charcoal">${plan.revenue.toLocaleString()}</div>
-                  <div className="text-xs text-brand-lightGray">Revenue</div>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
+          <Form.Item
+            name="reportType"
+            label="Report Type"
+            rules={[{ required: true, message: 'Please select report type' }]}
+          >
+            <Select placeholder="Select report type">
+              <Option value="revenue">Revenue Report</Option>
+              <Option value="orders">Orders Report</Option>
+              <Option value="users">User Analytics Report</Option>
+              <Option value="plans">Plan Performance Report</Option>
+              <Option value="comprehensive">Comprehensive Report</Option>
+            </Select>
+          </Form.Item>
 
-        {/* Recent Activity */}
-        <div className="bg-white rounded-lg shadow-sm border border-brand-lightGray p-6">
-          <h3 className="text-lg font-semibold text-brand-charcoal mb-6">Recent Activity</h3>
-          <div className="space-y-4">
-            {recentActivity.map((activity, index) => (
-              <div key={index} className="flex items-start space-x-3">
-                <div className={`p-2 bg-primary-50 rounded-full ${getActivityStatusColor(activity.status)}`}>
-                  {getActivityIcon(activity.type)}
-                </div>
-                <div className="flex-1">
-                  <p className="text-sm text-brand-charcoal">{activity.description}</p>
-                  <div className="flex items-center space-x-2 mt-1">
-                    <Clock size={12} className="text-brand-lightGray" />
-                    <span className="text-xs text-brand-lightGray">{activity.time}</span>
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </div>
+          <Form.Item
+            name="dateRange"
+            label="Date Range"
+            rules={[{ required: true, message: 'Please select date range' }]}
+          >
+            <RangePicker style={{ width: '100%' }} />
+          </Form.Item>
 
-      {/* Additional Analytics Widgets */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        {/* User Growth */}
-        <div className="bg-white rounded-lg shadow-sm border border-brand-lightGray p-6">
-          <h3 className="text-lg font-semibold text-brand-charcoal mb-4">User Growth</h3>
-          <div className="h-32 flex items-center justify-center bg-primary-50 rounded-lg">
-            <div className="text-center">
-              <TrendingUp size={32} className="text-brand-lightGray mx-auto mb-2" />
-              <p className="text-sm text-brand-lightGray">Growth chart</p>
-            </div>
-          </div>
-        </div>
+          <Form.Item
+            name="includeCharts"
+            label="Include Charts"
+            valuePropName="checked"
+          >
+            <Checkbox>Include visual charts and graphs</Checkbox>
+          </Form.Item>
 
-        {/* Conversion Funnel */}
-        <div className="bg-white rounded-lg shadow-sm border border-brand-lightGray p-6">
-          <h3 className="text-lg font-semibold text-brand-charcoal mb-4">Conversion Funnel</h3>
-          <div className="h-32 flex items-center justify-center bg-primary-50 rounded-lg">
-            <div className="text-center">
-              <BarChart3 size={32} className="text-brand-lightGray mx-auto mb-2" />
-              <p className="text-sm text-brand-lightGray">Funnel chart</p>
-            </div>
-          </div>
-        </div>
+          <Form.Item
+            name="includeTables"
+            label="Include Tables"
+            valuePropName="checked"
+          >
+            <Checkbox>Include detailed data tables</Checkbox>
+          </Form.Item>
 
-        {/* Geographic Distribution */}
-        <div className="bg-white rounded-lg shadow-sm border border-brand-lightGray p-6">
-          <h3 className="text-lg font-semibold text-brand-charcoal mb-4">Geographic Distribution</h3>
-          <div className="h-32 flex items-center justify-center bg-primary-50 rounded-lg">
-            <div className="text-center">
-              <Activity size={32} className="text-brand-lightGray mx-auto mb-2" />
-              <p className="text-sm text-brand-lightGray">Map visualization</p>
-            </div>
-          </div>
-        </div>
-      </div>
+          <Form.Item
+            name="format"
+            label="Export Format"
+            rules={[{ required: true, message: 'Please select export format' }]}
+          >
+            <Select placeholder="Select export format">
+              <Option value="pdf">PDF</Option>
+              <Option value="excel">Excel</Option>
+              <Option value="csv">CSV</Option>
+            </Select>
+          </Form.Item>
+        </Form>
+      </Modal>
     </div>
   )
 }

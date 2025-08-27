@@ -1,432 +1,732 @@
-import { useState, useEffect } from 'react'
+import React, { useState, useEffect } from 'react'
 import { 
-  Search, 
-  Filter, 
-  Download, 
-  Eye, 
-  Edit, 
-  Trash2, 
-  CheckCircle,
-  XCircle,
-  Clock,
-  AlertCircle,
-  DollarSign,
-  ShoppingCart,
-  CreditCard,
-  Calendar,
-  User
-} from 'lucide-react'
-import { adminOrdersService, Order } from '../services/admin/adminOrders'
+  Card, 
+  Button, 
+  Table, 
+  Tag, 
+  Space, 
+  Input, 
+  Select, 
+  DatePicker, 
+  Row, 
+  Col,
+  Modal,
+  Form,
+  message,
+  Popconfirm,
+  Tooltip,
+  Badge,
+  Tabs,
+  List,
+  Descriptions,
+  Timeline,
+  Statistic,
+  Progress,
+  Divider
+} from 'antd'
+import { 
+  ShoppingCartOutlined, 
+  SearchOutlined, 
+  FilterOutlined,
+  EditOutlined,
+  DeleteOutlined,
+  EyeOutlined,
+  CheckCircleOutlined,
+  ClockCircleOutlined,
+  CloseCircleOutlined,
+  DollarOutlined,
+  UserOutlined,
+  FileTextOutlined,
+  CreditCardOutlined,
+  BankOutlined,
+  MobileOutlined,
+  CalendarOutlined,
+  DownloadOutlined,
+  PrinterOutlined,
+  MailOutlined,
+  ExclamationCircleOutlined
+} from '@ant-design/icons'
+import { useSelector, useDispatch } from 'react-redux'
+import { RootState } from '../store'
+import { 
+  fetchOrdersStart, 
+  fetchOrdersSuccess, 
+  fetchOrdersFailure,
+  addOrder,
+  updateOrder,
+  deleteOrder 
+} from '../store/slices/ordersSlice'
 
-const Orders = () => {
-  const [orders, setOrders] = useState<Order[]>([])
-  const [loading, setLoading] = useState(true)
-  const [searchTerm, setSearchTerm] = useState('')
-  const [statusFilter, setStatusFilter] = useState('all')
-  const [paymentStatusFilter, setPaymentStatusFilter] = useState('all')
+const { Option } = Select
+const { RangePicker } = DatePicker
+
+
+const Orders: React.FC = () => {
+  const [isModalVisible, setIsModalVisible] = useState(false)
+  const [editingOrder, setEditingOrder] = useState<any>(null)
+  const [selectedOrder, setSelectedOrder] = useState<any>(null)
+  const [orderDetailsVisible, setOrderDetailsVisible] = useState(false)
+  const [refundModalVisible, setRefundModalVisible] = useState(false)
+  const [form] = Form.useForm()
+  const [refundForm] = Form.useForm()
+  const dispatch = useDispatch()
+  const { orders, isLoading } = useSelector((state: RootState) => state.orders)
+
+  // Mock data for demonstration
+  const mockOrders = [
+    {
+      id: 'ORD-001',
+      customerName: 'John Doe',
+      customerEmail: 'john.doe@example.com',
+      customerPhone: '+233 24 123 4567',
+      planTitle: 'Modern Villa Plan',
+      planId: 'PLAN-001',
+          amount: 2500,
+      status: 'Completed',
+      paymentMethod: 'Mobile Money',
+      paymentStatus: 'Paid',
+      orderDate: '2024-01-20 14:30',
+      completedDate: '2024-01-20 15:45',
+      transactionId: 'TXN-2024-001',
+      notes: 'Customer requested expedited delivery'
+    },
+    {
+      id: 'ORD-002',
+      customerName: 'Jane Smith',
+      customerEmail: 'jane.smith@example.com',
+      customerPhone: '+233 20 987 6543',
+      planTitle: 'Cozy Bungalow Design',
+      planId: 'PLAN-002',
+      amount: 1800,
+      status: 'Pending',
+      paymentMethod: 'Bank Transfer',
+      paymentStatus: 'Pending',
+      orderDate: '2024-01-19 09:15',
+      completedDate: null,
+      transactionId: 'TXN-2024-002',
+      notes: 'Awaiting bank confirmation'
+    },
+    {
+      id: 'ORD-003',
+      customerName: 'Mike Johnson',
+      customerEmail: 'mike.johnson@example.com',
+      customerPhone: '+233 26 555 1234',
+      planTitle: 'Luxury Townhouse',
+      planId: 'PLAN-003',
+      amount: 3200,
+      status: 'Cancelled',
+      paymentMethod: 'Credit Card',
+      paymentStatus: 'Refunded',
+      orderDate: '2024-01-18 16:45',
+      completedDate: null,
+      transactionId: 'TXN-2024-003',
+      notes: 'Customer requested cancellation'
+    },
+    {
+      id: 'ORD-004',
+      customerName: 'Sarah Wilson',
+      customerEmail: 'sarah.wilson@example.com',
+      customerPhone: '+233 27 777 8888',
+      planTitle: 'Rustic Cottage',
+      planId: 'PLAN-004',
+      amount: 1500,
+      status: 'Processing',
+      paymentMethod: 'Mobile Money',
+      paymentStatus: 'Paid',
+      orderDate: '2024-01-17 11:20',
+      completedDate: null,
+      transactionId: 'TXN-2024-004',
+      notes: 'Files being prepared for delivery'
+    }
+  ]
 
   useEffect(() => {
-    fetchOrders()
-  }, [])
-
-  const fetchOrders = async () => {
-    try {
-      setLoading(true)
-      // For now, using mock data until API is ready
-      const mockOrders: Order[] = [
-        {
-          id: '1',
-          orderNumber: 'ORD-2024-001',
-          userId: 'user-1',
-          userName: 'John Doe',
-          userEmail: 'john.doe@example.com',
-          planId: 'plan-1',
-          planTitle: 'Modern Villa Design',
-          planPrice: 2500,
-          status: 'completed',
-          paymentStatus: 'paid',
-          paymentMethod: 'stripe',
-          paymentId: 'pi_123456789',
-          amount: 2500,
-          currency: 'USD',
-          createdAt: '2024-01-15T10:30:00Z',
-          updatedAt: '2024-01-15T11:00:00Z',
-          completedAt: '2024-01-15T11:00:00Z',
-          adminNotes: 'Customer requested expedited processing'
-        },
-        {
-          id: '2',
-          orderNumber: 'ORD-2024-002',
-          userId: 'user-2',
-          userName: 'Jane Smith',
-          userEmail: 'jane.smith@example.com',
-          planId: 'plan-2',
-          planTitle: 'Commercial Office Complex',
-          planPrice: 5000,
-          status: 'pending',
-          paymentStatus: 'pending',
-          paymentMethod: 'paypal',
-          amount: 5000,
-          currency: 'USD',
-          createdAt: '2024-01-16T14:20:00Z',
-          updatedAt: '2024-01-16T14:20:00Z'
-        },
-        {
-          id: '3',
-          orderNumber: 'ORD-2024-003',
-          userId: 'user-3',
-          userName: 'Bob Wilson',
-          userEmail: 'bob.wilson@example.com',
-          planId: 'plan-3',
-          planTitle: 'Sustainable Home',
-          planPrice: 3500,
-          status: 'processing',
-          paymentStatus: 'paid',
-          paymentMethod: 'stripe',
-          paymentId: 'pi_987654321',
-          amount: 3500,
-          currency: 'USD',
-          createdAt: '2024-01-17T09:15:00Z',
-          updatedAt: '2024-01-17T09:15:00Z'
-        },
-        {
-          id: '4',
-          orderNumber: 'ORD-2024-004',
-          userId: 'user-4',
-          userName: 'Alice Brown',
-          userEmail: 'alice.brown@example.com',
-          planId: 'plan-4',
-          planTitle: 'Landscape Garden Design',
-          planPrice: 1200,
-          status: 'cancelled',
-          paymentStatus: 'refunded',
-          paymentMethod: 'stripe',
-          paymentId: 'pi_456789123',
-          amount: 1200,
-          currency: 'USD',
-          createdAt: '2024-01-18T16:45:00Z',
-          updatedAt: '2024-01-19T10:30:00Z',
-          refundReason: 'Customer changed requirements',
-          refundAmount: 1200,
-          refundDate: '2024-01-19T10:30:00Z'
-        }
-      ]
-      setOrders(mockOrders)
-    } catch (error) {
-      console.error('Error fetching orders:', error)
-    } finally {
-      setLoading(false)
-    }
-  }
+    // Simulate loading orders
+    dispatch(fetchOrdersStart())
+    setTimeout(() => {
+      dispatch(fetchOrdersSuccess(mockOrders))
+    }, 1000)
+  }, [dispatch])
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case 'completed':
-        return 'bg-success-100 text-success-800'
-      case 'processing':
-        return 'bg-blue-100 text-blue-800'
-      case 'pending':
-        return 'bg-warning-100 text-warning-800'
-      case 'cancelled':
-        return 'bg-danger-100 text-danger-800'
-      case 'refunded':
-        return 'bg-gray-100 text-gray-800'
-      case 'failed':
-        return 'bg-red-100 text-red-800'
-      default:
-        return 'bg-gray-100 text-gray-800'
-    }
-  }
-
-  const getPaymentStatusColor = (status: string) => {
-    switch (status) {
-      case 'paid':
-        return 'bg-success-100 text-success-800'
-      case 'pending':
-        return 'bg-warning-100 text-warning-800'
-      case 'failed':
-        return 'bg-danger-100 text-danger-800'
-      case 'refunded':
-        return 'bg-gray-100 text-gray-800'
-      case 'partially_refunded':
-        return 'bg-orange-100 text-orange-800'
-      default:
-        return 'bg-gray-100 text-gray-800'
+      case 'Completed': return 'green'
+      case 'Processing': return 'blue'
+      case 'Pending': return 'orange'
+      case 'Cancelled': return 'red'
+      case 'Refunded': return 'gray'
+      default: return 'default'
     }
   }
 
   const getStatusIcon = (status: string) => {
     switch (status) {
-      case 'completed':
-        return <CheckCircle size={16} />
-      case 'processing':
-        return <Clock size={16} />
-      case 'pending':
-        return <AlertCircle size={16} />
-      case 'cancelled':
-        return <XCircle size={16} />
-      case 'refunded':
-        return <DollarSign size={16} />
-      case 'failed':
-        return <XCircle size={16} />
-      default:
-        return <Clock size={16} />
+      case 'Completed': return <CheckCircleOutlined />
+      case 'Processing': return <ClockCircleOutlined />
+      case 'Pending': return <ClockCircleOutlined />
+      case 'Cancelled': return <CloseCircleOutlined />
+      case 'Refunded': return <ExclamationCircleOutlined />
+      default: return <ClockCircleOutlined />
     }
   }
 
   const getPaymentMethodIcon = (method: string) => {
     switch (method) {
-      case 'stripe':
-        return <CreditCard size={16} />
-      case 'paypal':
-        return <DollarSign size={16} />
-      case 'manual':
-        return <User size={16} />
-      default:
-        return <CreditCard size={16} />
+      case 'Mobile Money': return <MobileOutlined />
+      case 'Bank Transfer': return <BankOutlined />
+      case 'Credit Card': return <CreditCardOutlined />
+      default: return <DollarOutlined />
     }
   }
 
-  const filteredOrders = orders.filter(order => {
-    const matchesSearch = order.orderNumber.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         order.userName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         order.planTitle.toLowerCase().includes(searchTerm.toLowerCase())
-    const matchesStatus = statusFilter === 'all' || order.status === statusFilter
-    const matchesPaymentStatus = paymentStatusFilter === 'all' || order.paymentStatus === paymentStatusFilter
-    
-    return matchesSearch && matchesStatus && matchesPaymentStatus
-  })
+  const handleEditOrder = (order: any) => {
+    setEditingOrder(order)
+    form.setFieldsValue(order)
+    setIsModalVisible(true)
+  }
 
-  const totalRevenue = filteredOrders
-    .filter(order => order.paymentStatus === 'paid')
-    .reduce((sum, order) => sum + order.amount, 0)
+  const handleDeleteOrder = (orderId: string) => {
+    dispatch(deleteOrder(orderId))
+    message.success('Order deleted successfully')
+  }
 
-  const totalOrders = filteredOrders.length
-  const pendingOrders = filteredOrders.filter(order => order.status === 'pending').length
-  const completedOrders = filteredOrders.filter(order => order.status === 'completed').length
+  const handleViewOrder = (order: any) => {
+    setSelectedOrder(order)
+    setOrderDetailsVisible(true)
+  }
 
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center h-64">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-brand-orange"></div>
-      </div>
-    )
+  const handleStatusChange = (orderId: string, newStatus: string) => {
+    const order = orders.find(o => o.id === orderId)
+    if (order) {
+      const updatedOrder = { 
+        ...order, 
+        status: newStatus,
+        completedDate: newStatus === 'Completed' ? new Date().toISOString() : order.completedDate
+      }
+      dispatch(updateOrder(updatedOrder))
+      message.success(`Order status updated to ${newStatus}`)
+    }
+  }
+
+  const handleRefund = (order: any) => {
+    setSelectedOrder(order)
+    setRefundModalVisible(true)
+  }
+
+  const handleRefundSubmit = async () => {
+    try {
+      const values = await refundForm.validateFields()
+      const updatedOrder = { 
+        ...selectedOrder, 
+        status: 'Refunded',
+        paymentStatus: 'Refunded',
+        refundAmount: values.refundAmount,
+        refundReason: values.refundReason,
+        refundDate: new Date().toISOString()
+      }
+      dispatch(updateOrder(updatedOrder))
+      message.success('Refund processed successfully')
+      setRefundModalVisible(false)
+      refundForm.resetFields()
+    } catch (error) {
+      console.error('Refund validation failed:', error)
+    }
+  }
+
+  const columns = [
+    {
+      title: 'Order ID',
+      dataIndex: 'id',
+      key: 'id',
+      render: (id: string) => (
+        <span className="font-mono text-sm font-medium">{id}</span>
+      ),
+    },
+    {
+      title: 'Customer',
+      key: 'customer',
+      render: (record: any) => (
+        <div>
+          <div className="font-medium">{record.customerName}</div>
+          <div className="text-sm text-gray-500">{record.customerEmail}</div>
+        </div>
+      ),
+    },
+    {
+      title: 'Plan',
+      dataIndex: 'planTitle',
+      key: 'planTitle',
+      render: (title: string, record: any) => (
+        <div>
+          <div className="font-medium">{title}</div>
+          <div className="text-sm text-gray-500">ID: {record.planId}</div>
+        </div>
+      ),
+    },
+    {
+      title: 'Amount',
+      dataIndex: 'amount',
+      key: 'amount',
+      render: (amount: number) => (
+        <span className="font-bold text-primary-500">₵{amount.toLocaleString()}</span>
+      ),
+    },
+    {
+      title: 'Status',
+      dataIndex: 'status',
+      key: 'status',
+      render: (status: string) => (
+        <Badge 
+          status={getStatusColor(status) as any} 
+          text={status}
+          icon={getStatusIcon(status)}
+        />
+      ),
+    },
+    {
+      title: 'Payment',
+      key: 'payment',
+      render: (record: any) => (
+        <div>
+          <div className="flex items-center space-x-1">
+            {getPaymentMethodIcon(record.paymentMethod)}
+            <span className="text-sm">{record.paymentMethod}</span>
+          </div>
+          <div className="text-sm text-gray-500">{record.paymentStatus}</div>
+        </div>
+      ),
+    },
+    {
+      title: 'Date',
+      dataIndex: 'orderDate',
+      key: 'orderDate',
+      render: (date: string) => (
+        <div className="text-sm">
+          {new Date(date).toLocaleDateString()}
+        </div>
+      ),
+    },
+    {
+      title: 'Actions',
+      key: 'actions',
+      render: (record: any) => (
+        <Space>
+          <Tooltip title="View Details">
+            <Button 
+              type="text" 
+              icon={<EyeOutlined />} 
+              size="small"
+              onClick={() => handleViewOrder(record)}
+            />
+          </Tooltip>
+          <Tooltip title="Edit Order">
+            <Button 
+              type="text" 
+              icon={<EditOutlined />} 
+              size="small"
+              onClick={() => handleEditOrder(record)}
+            />
+          </Tooltip>
+          {record.status === 'Completed' && (
+            <Tooltip title="Process Refund">
+              <Button 
+                type="text"
+                icon={<DollarOutlined />} 
+                size="small"
+                onClick={() => handleRefund(record)}
+              />
+            </Tooltip>
+          )}
+          <Popconfirm
+            title="Are you sure you want to delete this order?"
+            onConfirm={() => handleDeleteOrder(record.id)}
+            okText="Yes"
+            cancelText="No"
+          >
+            <Tooltip title="Delete Order">
+              <Button type="text" icon={<DeleteOutlined />} size="small" danger />
+            </Tooltip>
+          </Popconfirm>
+        </Space>
+      ),
+    },
+  ]
+
+  const mockActivity = [
+    { time: '2024-01-20 15:45', action: 'Order completed', user: 'System' },
+    { time: '2024-01-20 15:30', action: 'Payment confirmed', user: 'Payment Gateway' },
+    { time: '2024-01-20 14:30', action: 'Order placed', user: 'John Doe' },
+    { time: '2024-01-20 14:25', action: 'Payment initiated', user: 'John Doe' }
+  ]
+
+  const orderStats = {
+    total: 1247,
+    completed: 892,
+    pending: 234,
+    processing: 89,
+    cancelled: 32,
+    revenue: 3125000
   }
 
   return (
     <div className="space-y-6">
-      {/* Page Header */}
-      <div className="flex items-center justify-between">
+      {/* Header */}
+      <div className="flex justify-between items-center">
         <div>
-          <h1 className="text-2xl font-bold text-brand-charcoal">Orders Management</h1>
-          <p className="text-brand-lightGray">Manage customer orders, payments, and fulfillment</p>
+          <h1 className="text-2xl font-bold text-gray-900 mb-2">Orders & Payments</h1>
+          <p className="text-gray-600">Manage customer orders and payment processing</p>
         </div>
-        <div className="flex items-center space-x-3">
-          <button className="btn btn-secondary flex items-center space-x-2">
-            <Download size={16} />
-            <span>Export Orders</span>
-          </button>
-        </div>
+        <Space>
+          <Button icon={<DownloadOutlined />}>
+            Export Orders
+          </Button>
+          <Button icon={<PrinterOutlined />}>
+            Print Report
+          </Button>
+        </Space>
       </div>
 
-      {/* Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-        <div className="bg-white rounded-lg shadow-sm border border-brand-lightGray p-6">
-          <div className="flex items-center">
-            <div className="p-3 bg-primary-50 rounded-lg">
-              <ShoppingCart size={24} className="text-brand-orange" />
-            </div>
-            <div className="ml-4">
-              <p className="text-sm font-medium text-brand-lightGray">Total Orders</p>
-              <p className="text-2xl font-bold text-brand-charcoal">{totalOrders}</p>
-            </div>
-          </div>
-        </div>
-        <div className="bg-white rounded-lg shadow-sm border border-brand-lightGray p-6">
-          <div className="flex items-center">
-            <div className="p-3 bg-success-50 rounded-lg">
-              <DollarSign size={24} className="text-success-600" />
-            </div>
-            <div className="ml-4">
-              <p className="text-sm font-medium text-brand-lightGray">Total Revenue</p>
-              <p className="text-2xl font-bold text-brand-charcoal">${totalRevenue.toLocaleString()}</p>
-            </div>
-          </div>
-        </div>
-        <div className="bg-white rounded-lg shadow-sm border border-brand-lightGray p-6">
-          <div className="flex items-center">
-            <div className="p-3 bg-warning-50 rounded-lg">
-              <Clock size={24} className="text-warning-600" />
-            </div>
-            <div className="ml-4">
-              <p className="text-sm font-medium text-brand-lightGray">Pending Orders</p>
-              <p className="text-2xl font-bold text-brand-charcoal">{pendingOrders}</p>
-            </div>
-          </div>
-        </div>
-        <div className="bg-white rounded-lg shadow-sm border border-brand-lightGray p-6">
-          <div className="flex items-center">
-            <div className="p-3 bg-success-50 rounded-lg">
-              <CheckCircle size={24} className="text-success-600" />
-            </div>
-            <div className="ml-4">
-              <p className="text-sm font-medium text-brand-lightGray">Completed</p>
-              <p className="text-2xl font-bold text-brand-charcoal">{completedOrders}</p>
-            </div>
-          </div>
-        </div>
-      </div>
+      {/* Statistics */}
+      <Row gutter={[16, 16]}>
+        <Col xs={24} sm={12} lg={6}>
+          <Card>
+            <Statistic
+              title="Total Orders"
+              value={orderStats.total}
+              valueStyle={{ color: '#2d3748' }}
+            />
+          </Card>
+        </Col>
+        <Col xs={24} sm={12} lg={6}>
+          <Card>
+            <Statistic
+              title="Total Revenue"
+              value={orderStats.revenue}
+              prefix="₵"
+              valueStyle={{ color: '#f97316' }}
+            />
+          </Card>
+        </Col>
+        <Col xs={24} sm={12} lg={6}>
+          <Card>
+            <Statistic
+              title="Completion Rate"
+              value={((orderStats.completed / orderStats.total) * 100).toFixed(1)}
+              suffix="%"
+              valueStyle={{ color: '#10b981' }}
+            />
+          </Card>
+        </Col>
+        <Col xs={24} sm={12} lg={6}>
+          <Card>
+            <Statistic
+              title="Pending Orders"
+              value={orderStats.pending}
+              valueStyle={{ color: '#f59e0b' }}
+            />
+          </Card>
+        </Col>
+      </Row>
 
-      {/* Filters and Search */}
-      <div className="bg-white rounded-lg shadow-sm border border-brand-lightGray p-6">
-        <div className="flex flex-col md:flex-row gap-4">
-          <div className="flex-1">
-            <div className="relative">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-brand-lightGray" size={20} />
-              <input
-                type="text"
-                placeholder="Search orders by number, customer, or plan..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-10 pr-4 py-2 w-full border border-brand-lightGray rounded-md focus:outline-none focus:ring-2 focus:ring-brand-orange focus:border-transparent"
-              />
-            </div>
-          </div>
-          <div className="flex gap-3">
-            <select
-              value={statusFilter}
-              onChange={(e) => setStatusFilter(e.target.value)}
-              className="px-3 py-2 border border-brand-lightGray rounded-md focus:outline-none focus:ring-2 focus:ring-brand-orange focus:border-transparent"
-            >
-              <option value="all">All Status</option>
-              <option value="pending">Pending</option>
-              <option value="processing">Processing</option>
-              <option value="completed">Completed</option>
-              <option value="cancelled">Cancelled</option>
-              <option value="refunded">Refunded</option>
-              <option value="failed">Failed</option>
-            </select>
-            <select
-              value={paymentStatusFilter}
-              onChange={(e) => setPaymentStatusFilter(e.target.value)}
-              className="px-3 py-2 border border-brand-lightGray rounded-md focus:outline-none focus:ring-2 focus:ring-brand-orange focus:border-transparent"
-            >
-              <option value="all">All Payment Status</option>
-              <option value="pending">Pending</option>
-              <option value="paid">Paid</option>
-              <option value="failed">Failed</option>
-              <option value="refunded">Refunded</option>
-              <option value="partially_refunded">Partially Refunded</option>
-            </select>
-          </div>
-        </div>
-      </div>
+      {/* Filters */}
+      <Card>
+        <Row gutter={[16, 16]} align="middle">
+          <Col xs={24} sm={12} md={6}>
+            <Input
+              placeholder="Search orders..."
+              prefix={<SearchOutlined />}
+              allowClear
+            />
+          </Col>
+          <Col xs={24} sm={12} md={4}>
+            <Select placeholder="Status" allowClear style={{ width: '100%' }}>
+              <Option value="Completed">Completed</Option>
+              <Option value="Processing">Processing</Option>
+              <Option value="Pending">Pending</Option>
+              <Option value="Cancelled">Cancelled</Option>
+              <Option value="Refunded">Refunded</Option>
+            </Select>
+          </Col>
+          <Col xs={24} sm={12} md={4}>
+            <Select placeholder="Payment Method" allowClear style={{ width: '100%' }}>
+              <Option value="Mobile Money">Mobile Money</Option>
+              <Option value="Bank Transfer">Bank Transfer</Option>
+              <Option value="Credit Card">Credit Card</Option>
+            </Select>
+          </Col>
+          <Col xs={24} sm={12} md={6}>
+            <RangePicker style={{ width: '100%' }} placeholder={['Start Date', 'End Date']} />
+          </Col>
+          <Col xs={24} sm={12} md={4}>
+            <Button icon={<FilterOutlined />} block>
+              Apply Filters
+            </Button>
+          </Col>
+        </Row>
+      </Card>
 
       {/* Orders Table */}
-      <div className="bg-white rounded-lg shadow-sm border border-brand-lightGray overflow-hidden">
-        <div className="overflow-x-auto">
-          <table className="min-w-full divide-y divide-brand-lightGray">
-            <thead className="bg-primary-50">
-              <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium text-brand-charcoal uppercase tracking-wider">
-                  Order
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-brand-charcoal uppercase tracking-wider">
-                  Customer
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-brand-charcoal uppercase tracking-wider">
-                  Plan
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-brand-charcoal uppercase tracking-wider">
-                  Amount
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-brand-charcoal uppercase tracking-wider">
-                  Status
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-brand-charcoal uppercase tracking-wider">
-                  Payment
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-brand-charcoal uppercase tracking-wider">
-                  Date
-                </th>
-                <th className="px-6 py-3 text-right text-xs font-medium text-brand-charcoal uppercase tracking-wider">
-                  Actions
-                </th>
-              </tr>
-            </thead>
-            <tbody className="bg-white divide-y divide-brand-lightGray">
-              {filteredOrders.map((order) => (
-                <tr key={order.id} className="hover:bg-primary-50">
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="text-sm font-medium text-brand-charcoal">{order.orderNumber}</div>
-                    <div className="text-xs text-brand-lightGray">ID: {order.id}</div>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="text-sm font-medium text-brand-charcoal">{order.userName}</div>
-                    <div className="text-xs text-brand-lightGray">{order.userEmail}</div>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="text-sm font-medium text-brand-charcoal">{order.planTitle}</div>
-                    <div className="text-xs text-brand-lightGray">${order.planPrice.toLocaleString()}</div>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="text-sm font-bold text-brand-charcoal">${order.amount.toLocaleString()}</div>
-                    <div className="text-xs text-brand-lightGray">{order.currency}</div>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getStatusColor(order.status)}`}>
-                      {getStatusIcon(order.status)}
-                      <span className="ml-1 capitalize">{order.status}</span>
-                    </span>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="flex items-center space-x-2">
-                      <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${getPaymentStatusColor(order.paymentStatus)}`}>
-                        {getPaymentMethodIcon(order.paymentMethod)}
-                        <span className="ml-1 capitalize">{order.paymentStatus}</span>
-                      </span>
-                    </div>
-                    <div className="text-xs text-brand-lightGray mt-1">
-                      {order.paymentMethod.replace(/\b\w/g, l => l.toUpperCase())}
-                    </div>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-brand-lightGray">
-                    <div>{new Date(order.createdAt).toLocaleDateString()}</div>
-                    <div className="text-xs">{new Date(order.createdAt).toLocaleTimeString()}</div>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                    <div className="flex items-center justify-end space-x-2">
-                      <button className="text-brand-orange hover:text-primary-600" title="View order">
-                        <Eye size={16} />
-                      </button>
-                      <button className="text-brand-charcoal hover:text-primary-600" title="Edit order">
-                        <Edit size={16} />
-                      </button>
-                      <button className="text-danger-600 hover:text-danger-800" title="Delete order">
-                        <Trash2 size={16} />
-                      </button>
-                    </div>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      </div>
+      <Card>
+        <Table
+          columns={columns}
+          dataSource={orders}
+          loading={isLoading}
+          rowKey="id"
+          pagination={{
+            total: orders.length,
+            pageSize: 10,
+            showSizeChanger: true,
+            showQuickJumper: true,
+            showTotal: (total, range) => `${range[0]}-${range[1]} of ${total} orders`,
+          }}
+        />
+      </Card>
 
-      {/* Empty State */}
-      {filteredOrders.length === 0 && (
-        <div className="text-center py-12">
-          <ShoppingCart size={48} className="text-brand-lightGray mx-auto mb-4" />
-          <h3 className="text-lg font-medium text-brand-charcoal mb-2">No orders found</h3>
-          <p className="text-brand-lightGray mb-4">
-            {searchTerm || statusFilter !== 'all' || paymentStatusFilter !== 'all' 
-              ? 'Try adjusting your search or filters'
-              : 'No orders have been placed yet'
-            }
-          </p>
+      {/* Edit Order Modal */}
+      <Modal
+        title={editingOrder ? 'Edit Order' : 'Order Details'}
+        open={isModalVisible}
+        onCancel={() => setIsModalVisible(false)}
+        width={600}
+        footer={[
+          <Button key="cancel" onClick={() => setIsModalVisible(false)}>
+            Cancel
+          </Button>,
+          <Button key="submit" type="primary" onClick={() => setIsModalVisible(false)}>
+            Update Order
+          </Button>
+        ]}
+      >
+        <Form
+          form={form}
+          layout="vertical"
+        >
+          <Row gutter={16}>
+            <Col span={12}>
+              <Form.Item
+                name="customerName"
+                label="Customer Name"
+              >
+                <Input />
+              </Form.Item>
+            </Col>
+            <Col span={12}>
+              <Form.Item
+                name="customerEmail"
+                label="Customer Email"
+              >
+                <Input />
+              </Form.Item>
+            </Col>
+          </Row>
+          <Row gutter={16}>
+            <Col span={12}>
+              <Form.Item
+                name="amount"
+                label="Amount"
+              >
+                <Input prefix="₵" />
+              </Form.Item>
+            </Col>
+            <Col span={12}>
+              <Form.Item
+                name="status"
+                label="Status"
+              >
+                <Select>
+                  <Option value="Completed">Completed</Option>
+                  <Option value="Processing">Processing</Option>
+                  <Option value="Pending">Pending</Option>
+                  <Option value="Cancelled">Cancelled</Option>
+                </Select>
+              </Form.Item>
+            </Col>
+          </Row>
+          <Form.Item
+            name="notes"
+            label="Notes"
+          >
+            <Input.TextArea rows={3} />
+          </Form.Item>
+        </Form>
+      </Modal>
+
+      {/* Order Details Modal */}
+      <Modal
+        title={
+                    <div className="flex items-center space-x-2">
+            <ShoppingCartOutlined className="text-primary-500" />
+            <span>Order Details</span>
+          </div>
+        }
+        open={orderDetailsVisible}
+        onCancel={() => setOrderDetailsVisible(false)}
+        width={900}
+        footer={[
+          <Button key="close" onClick={() => setOrderDetailsVisible(false)}>
+            Close
+          </Button>,
+          <Button 
+            key="edit" 
+            type="primary" 
+            icon={<EditOutlined />}
+            onClick={() => {
+              setOrderDetailsVisible(false)
+              handleEditOrder(selectedOrder)
+            }}
+          >
+            Edit Order
+          </Button>
+        ]}
+      >
+        {selectedOrder && (
+          <div className="space-y-6">
+            {/* Order Header */}
+            <Card>
+              <Row gutter={[16, 16]} align="middle">
+                <Col span={16}>
+                  <h2 className="text-xl font-bold text-gray-900 mb-2">Order {selectedOrder.id}</h2>
+                  <p className="text-gray-600 mb-3">{selectedOrder.planTitle}</p>
+                  <Space>
+                    <Badge 
+                      status={getStatusColor(selectedOrder.status) as any} 
+                      text={selectedOrder.status}
+                      icon={getStatusIcon(selectedOrder.status)}
+                    />
+                    <Tag color="blue">{selectedOrder.paymentMethod}</Tag>
+                    <Tag color={selectedOrder.paymentStatus === 'Paid' ? 'green' : 'orange'}>
+                      {selectedOrder.paymentStatus}
+                    </Tag>
+                  </Space>
+                </Col>
+                <Col span={8} className="text-right">
+                  <div className="text-2xl font-bold text-primary-500">
+                    ₵{selectedOrder.amount.toLocaleString()}
+                  </div>
+                  <div className="text-sm text-gray-500">Total Amount</div>
+                </Col>
+              </Row>
+            </Card>
+
+            {/* Order Information */}
+            <Row gutter={[16, 16]}>
+              <Col span={12}>
+                <Card title="Customer Information">
+                  <Descriptions column={1} size="small">
+                    <Descriptions.Item label="Name">{selectedOrder.customerName}</Descriptions.Item>
+                    <Descriptions.Item label="Email">{selectedOrder.customerEmail}</Descriptions.Item>
+                    <Descriptions.Item label="Phone">{selectedOrder.customerPhone}</Descriptions.Item>
+                    <Descriptions.Item label="Order Date">
+                      {new Date(selectedOrder.orderDate).toLocaleString()}
+                    </Descriptions.Item>
+                    {selectedOrder.completedDate && (
+                      <Descriptions.Item label="Completed Date">
+                        {new Date(selectedOrder.completedDate).toLocaleString()}
+                      </Descriptions.Item>
+                    )}
+                  </Descriptions>
+                </Card>
+              </Col>
+              <Col span={12}>
+                <Card title="Payment Information">
+                  <Descriptions column={1} size="small">
+                    <Descriptions.Item label="Transaction ID">{selectedOrder.transactionId}</Descriptions.Item>
+                    <Descriptions.Item label="Payment Method">{selectedOrder.paymentMethod}</Descriptions.Item>
+                    <Descriptions.Item label="Payment Status">{selectedOrder.paymentStatus}</Descriptions.Item>
+                    <Descriptions.Item label="Amount">₵{selectedOrder.amount.toLocaleString()}</Descriptions.Item>
+                  </Descriptions>
+                </Card>
+              </Col>
+            </Row>
+
+            {/* Quick Actions */}
+            <Card title="Quick Actions">
+              <Space wrap>
+                <Button 
+                  icon={<MailOutlined />}
+                  onClick={() => message.info('Email sent to customer')}
+                >
+                  Send Email
+                </Button>
+                <Button 
+                  icon={<DownloadOutlined />}
+                  onClick={() => message.info('Invoice downloaded')}
+                >
+                  Download Invoice
+                </Button>
+                {selectedOrder.status === 'Completed' && (
+                  <Button 
+                    icon={<DollarOutlined />}
+                    onClick={() => handleRefund(selectedOrder)}
+                  >
+                    Process Refund
+                  </Button>
+                )}
+                <Button 
+                  icon={<PrinterOutlined />}
+                  onClick={() => message.info('Order details printed')}
+                >
+                  Print Order
+                </Button>
+              </Space>
+            </Card>
+
+            {/* Activity Timeline */}
+            <Card title="Order Timeline">
+              <Timeline
+                items={mockActivity.map((activity, index) => ({
+                  key: index,
+                  children: (
+                    <div className="flex justify-between items-start">
+                      <div>
+                        <div className="font-medium">{activity.action}</div>
+                        <div className="text-sm text-gray-500">by {activity.user}</div>
+                    </div>
+                      <div className="text-sm text-gray-400">
+                        {new Date(activity.time).toLocaleString()}
+                    </div>
+                    </div>
+                  )
+                }))}
+              />
+            </Card>
         </div>
       )}
+      </Modal>
+
+      {/* Refund Modal */}
+      <Modal
+        title="Process Refund"
+        open={refundModalVisible}
+        onOk={handleRefundSubmit}
+        onCancel={() => setRefundModalVisible(false)}
+        width={500}
+        okText="Process Refund"
+        cancelText="Cancel"
+      >
+        <Form
+          form={refundForm}
+          layout="vertical"
+          initialValues={{
+            refundAmount: selectedOrder?.amount || 0
+          }}
+        >
+          <Form.Item
+            name="refundAmount"
+            label="Refund Amount (₵)"
+            rules={[{ required: true, message: 'Please enter refund amount' }]}
+          >
+            <Input prefix="₵" type="number" />
+          </Form.Item>
+          <Form.Item
+            name="refundReason"
+            label="Refund Reason"
+            rules={[{ required: true, message: 'Please enter refund reason' }]}
+          >
+            <Input.TextArea rows={3} placeholder="Enter reason for refund..." />
+          </Form.Item>
+        </Form>
+      </Modal>
     </div>
   )
 }
