@@ -7,18 +7,35 @@ const API_BASE_URL = 'https://sak-backend.vercel.app/api/v1';
 export interface AdminUser {
   id: string;
   email: string;
-  name: string;
+  name?: string;
+  fullName?: string;
   role: 'superAdmin' | 'admin' | 'contentManager' | 'orderProcessor' | 'support';
-  createdAt: string;
-  updatedAt: string;
+  createdAt?: string;
+  updatedAt?: string;
 }
 
-export interface LoginResponse {
+// Backend response structure
+export interface BackendLoginResponse {
+  success: boolean;
+  message: string;
+  data: {
+    admin: AdminUser;
+    session: {
+      token: string;
+    };
+  };
+}
+
+// Frontend expected structure (for mock data)
+export interface FrontendLoginResponse {
   success: boolean;
   token: string;
   user: AdminUser;
   message?: string;
 }
+
+// Union type to handle both structures
+export type LoginResponse = BackendLoginResponse | FrontendLoginResponse;
 
 export interface ApiResponse<T> {
   success: boolean;

@@ -58,7 +58,7 @@ export const useAuthLogin = () => {
     onSuccess: (data) => {
       if (data.success) {
         // Handle both backend response structure and mock data structure
-        const token = data.token || data.data?.session?.token
+        const token = 'data' in data ? data.data.session.token : data.token
         if (token) {
           localStorage.setItem('adminToken', token);
           queryClient.invalidateQueries({ queryKey: queryKeys.auth.profile });

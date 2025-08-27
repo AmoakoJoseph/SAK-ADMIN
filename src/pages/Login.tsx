@@ -51,8 +51,8 @@ const Login: React.FC = () => {
       
       if (result && result.success) {
         // Handle both backend response structure and mock data structure
-        const user = result.user || result.data?.admin
-        const token = result.token || result.data?.session?.token
+        const user = 'data' in result ? result.data.admin : result.user
+        const token = 'data' in result ? result.data.session.token : result.token
         
         if (user) {
           const userData = {
