@@ -47,14 +47,16 @@ const Login: React.FC = () => {
         password: values.password,
       })
       
-      if (result.success) {
+      console.log('Login result:', result) // Debug log
+      
+      if (result && result.success && result.user) {
         const userData = {
-          id: result.user.id,
-          name: result.user.name,
-          email: result.user.email,
-          role: result.user.role,
+          id: result.user.id || '1',
+          name: result.user.name || 'SAK Admin',
+          email: result.user.email || values.email,
+          role: result.user.role || 'superAdmin',
           avatar: undefined,
-          token: result.token
+          token: result.token || 'mock-token'
         }
         
         dispatch(loginSuccess(userData))
@@ -67,12 +69,15 @@ const Login: React.FC = () => {
         
         navigate('/')
       } else {
-        dispatch(loginFailure(result.message || 'Login failed'))
-        message.error(result.message || 'Login failed. Please check your credentials.')
+        const errorMessage = result?.message || 'Login failed - Invalid response'
+        dispatch(loginFailure(errorMessage))
+        message.error(errorMessage)
       }
     } catch (error: any) {
-      dispatch(loginFailure(error.message || 'Invalid email or password'))
-      message.error(error.message || 'Login failed. Please check your credentials.')
+      console.error('Login error:', error)
+      const errorMessage = error?.message || 'Invalid email or password'
+      dispatch(loginFailure(errorMessage))
+      message.error(errorMessage)
     }
   }
 
@@ -86,7 +91,7 @@ const Login: React.FC = () => {
 
   const handleDemoLogin = () => {
     form.setFieldsValue({
-      email: 'admin@sakconstructions.com',
+      email: 'admin@sakconstruction.com',
       password: 'admin123'
     })
   }
@@ -123,7 +128,7 @@ const Login: React.FC = () => {
           {/* Demo Login Alert */}
           <Alert
             message="Demo Account"
-            description="Use admin@sakconstructions.com / admin123 for demo access"
+            description="Use admin@sakconstruction.com / admin123 for demo access"
             type="info"
             showIcon
             className="mb-6"
