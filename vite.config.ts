@@ -4,7 +4,12 @@ import path from 'path'
 
 // https://vitejs.dev/config/
 export default defineConfig({
-  plugins: [react()],
+  plugins: [
+    react({
+      // Optimize React for ESM
+      jsxRuntime: 'automatic',
+    }),
+  ],
   resolve: {
     alias: {
       '@': path.resolve(__dirname, './src'),
@@ -14,18 +19,31 @@ export default defineConfig({
     port: 3001,
     open: true,
   },
+  optimizeDeps: {
+    include: ['react', 'react-dom'],
+    exclude: ['@tanstack/react-query'],
+    esbuildOptions: {
+      target: 'esnext',
+    },
+  },
   build: {
     outDir: 'dist',
     sourcemap: true,
     minify: 'terser',
+    target: 'esnext', // Target modern browsers for better ESM support
     terserOptions: {
       compress: {
         drop_console: true,
         drop_debugger: true,
+        pure_funcs: ['console.log', 'console.info', 'console.debug'],
+      },
+      mangle: {
+        safari10: true, // Better Safari compatibility
       },
     },
     rollupOptions: {
       output: {
+        format: 'es', // Ensure ESM output
         manualChunks: (id) => {
           // Vendor chunks
           if (id.includes('node_modules')) {
