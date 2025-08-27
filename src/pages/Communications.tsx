@@ -13,7 +13,7 @@ import {
   Row, 
   Col, 
   Typography, 
-  Divider,
+
   Tabs,
   List,
   Badge,
@@ -142,7 +142,7 @@ const Communications: React.FC = () => {
     activeTemplates: 12
   }
 
-  const handleSaveTemplate = async (values: any) => {
+  const handleSaveTemplate = async () => {
     setSending(true)
     try {
       await new Promise(resolve => setTimeout(resolve, 1000))
@@ -156,7 +156,7 @@ const Communications: React.FC = () => {
     }
   }
 
-  const handleSendNotification = async (values: any) => {
+  const handleSendNotification = async () => {
     setSending(true)
     try {
       await new Promise(resolve => setTimeout(resolve, 2000))
@@ -237,7 +237,7 @@ const Communications: React.FC = () => {
     {
       title: 'Actions',
       key: 'actions',
-      render: (text: string, record: EmailTemplate) => (
+      render: (_: string, record: EmailTemplate) => (
         <Space>
           <Tooltip title="Edit Template">
             <Button 
@@ -327,7 +327,7 @@ const Communications: React.FC = () => {
     {
       title: 'Actions',
       key: 'actions',
-      render: (text: string, record: Notification) => (
+      render: (_: string, record: Notification) => (
         <Space>
           <Tooltip title="Edit">
             <Button type="text" icon={<EditOutlined />} />

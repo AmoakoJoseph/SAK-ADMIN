@@ -1,14 +1,13 @@
 import React, { useState, useEffect } from 'react'
-import { 
-  Badge, 
-  Popover, 
-  List, 
-  Avatar, 
-  Typography, 
-  Button, 
-  Space, 
-  Tag, 
-  Divider,
+import {
+  Badge,
+  Popover,
+  List,
+  Avatar,
+  Typography,
+  Button,
+  Space,
+  Tag,
   Empty,
   Spin,
   Tabs
@@ -40,18 +39,15 @@ interface Notification {
 }
 
 interface NotificationCenterProps {
-  count?: number
   onMarkAllRead?: () => void
   onClearAll?: () => void
 }
 
 const NotificationCenter: React.FC<NotificationCenterProps> = ({
-  count = 0,
   onMarkAllRead,
   onClearAll
 }) => {
   const [notifications, setNotifications] = useState<Notification[]>([])
-  const [loading, setLoading] = useState(false)
   const [activeTab, setActiveTab] = useState('all')
   const { message } = App.useApp()
 
@@ -120,15 +116,7 @@ const NotificationCenter: React.FC<NotificationCenterProps> = ({
     return iconConfig[type]
   }
 
-  const getNotificationColor = (type: Notification['type']) => {
-    const colorConfig = {
-      info: 'blue',
-      success: 'green',
-      warning: 'orange',
-      error: 'red'
-    }
-    return colorConfig[type]
-  }
+
 
   const formatTimestamp = (timestamp: Date) => {
     const now = new Date()
@@ -253,7 +241,7 @@ const NotificationCenter: React.FC<NotificationCenterProps> = ({
         style={{ marginBottom: 16 }}
       />
 
-      {loading ? (
+      {false ? (
         <div style={{ textAlign: 'center', padding: '40px 0' }}>
           <Spin />
         </div>
@@ -286,11 +274,11 @@ const NotificationCenter: React.FC<NotificationCenterProps> = ({
                       <Text strong={!notification.read}>
                         {notification.title}
                       </Text>
-                      {!notification.read && (
-                        <Tag color="green" size="small" style={{ marginLeft: 8 }}>
-                          New
-                        </Tag>
-                      )}
+                                                {!notification.read && (
+                            <Tag color="green" style={{ marginLeft: 8 }}>
+                              New
+                            </Tag>
+                          )}
                     </div>
                     <Space>
                       {!notification.read && (

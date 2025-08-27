@@ -10,42 +10,25 @@ import {
   Space,
   Table,
   Tabs,
-  Progress,
-  List,
-  Avatar,
   Tag,
-  Badge,
   Modal,
   Form,
   Input,
   Checkbox,
-  message,
-  Tooltip,
-  Divider
+  message
 } from 'antd'
 import { 
   BarChartOutlined, 
-  LineChartOutlined,
-  PieChartOutlined,
   DownloadOutlined,
-  PrinterOutlined,
-  EyeOutlined,
   DollarOutlined,
   UserOutlined,
   ShoppingCartOutlined,
   FileTextOutlined,
   RiseOutlined,
-  ArrowDownOutlined,
-  CalendarOutlined,
-  FilterOutlined,
-  ReloadOutlined,
-  SettingOutlined
+
+  FilterOutlined
 } from '@ant-design/icons'
 import { 
-  LineChart, 
-  Line, 
-  BarChart, 
-  Bar, 
   PieChart,
   Pie, 
   Cell,
@@ -53,10 +36,7 @@ import {
   YAxis, 
   CartesianGrid, 
   Tooltip as RechartsTooltip, 
-  ResponsiveContainer,
-  AreaChart,
-  Area,
-  Legend
+  ResponsiveContainer
 } from 'recharts'
 
 const { Option } = Select
@@ -64,7 +44,6 @@ const { RangePicker } = DatePicker
 
 
 const Analytics: React.FC = () => {
-  const [dateRange, setDateRange] = useState<[string, string]>(['2024-01-01', '2024-01-31'])
   const [selectedPeriod, setSelectedPeriod] = useState('30')
   const [reportModalVisible, setReportModalVisible] = useState(false)
   const [form] = Form.useForm()
@@ -79,20 +58,7 @@ const Analytics: React.FC = () => {
     { month: 'Jun', revenue: 189000, orders: 68, users: 175 }
   ]
 
-  const planPerformanceData = [
-    { name: 'Modern Villa', sales: 45, revenue: 112500, growth: 12.5 },
-    { name: 'Cozy Bungalow', sales: 38, revenue: 68400, growth: 8.3 },
-    { name: 'Luxury Townhouse', sales: 32, revenue: 102400, growth: 15.2 },
-    { name: 'Rustic Cottage', sales: 28, revenue: 42000, growth: 5.8 },
-    { name: 'Farmhouse Design', sales: 22, revenue: 44000, growth: 3.2 }
-  ]
 
-  const userActivityData = [
-    { name: 'New Registrations', value: 45, color: '#4A90E2' },
-    { name: 'Active Users', value: 120, color: '#50C878' },
-    { name: 'Returning Users', value: 85, color: '#FF6B6B' },
-    { name: 'Inactive Users', value: 30, color: '#FFD93D' }
-  ]
 
   const paymentMethodData = [
     { name: 'Mobile Money', value: 65, color: '#4A90E2' },
@@ -174,9 +140,7 @@ const Analytics: React.FC = () => {
     }
   ]
 
-  const getGrowthIcon = (growth: number) => {
-    return growth >= 0 ? <RiseOutlined /> : <ArrowDownOutlined />
-  }
+
 
   const getActivityIcon = (type: string) => {
     switch (type) {
@@ -193,20 +157,15 @@ const Analytics: React.FC = () => {
     }
   }
 
-  const [loading, setLoading] = useState(false)
-
   const handleGenerateReport = async () => {
     try {
-      const values = await form.validateFields()
-      setLoading(true)
+      await form.validateFields()
       // Simulate report generation
       await new Promise(resolve => setTimeout(resolve, 2000))
       message.success('Report generated successfully!')
       setReportModalVisible(false)
     } catch (error) {
       message.error('Failed to generate report')
-    } finally {
-      setLoading(false)
     }
   }
 
@@ -291,7 +250,7 @@ const Analytics: React.FC = () => {
             <Button icon={<DownloadOutlined />}>
               Export Data
             </Button>
-            <Button icon={<PrinterOutlined />}>
+            <Button>
               Print Report
             </Button>
             <Button type="primary" icon={<BarChartOutlined />} onClick={() => setReportModalVisible(true)}>
@@ -321,7 +280,7 @@ const Analytics: React.FC = () => {
               style={{ width: '100%' }}
               onChange={(dates) => {
                 if (dates && dates[0] && dates[1]) {
-                  setDateRange([dates[0].toISOString(), dates[1].toISOString()])
+                  console.log('Date range changed:', [dates[0].toISOString(), dates[1].toISOString()])
                 }
               }}
             />
@@ -411,21 +370,15 @@ const Analytics: React.FC = () => {
                 <Col xs={24} lg={16}>
                   <Card title="Revenue Trend" className="h-80">
                     <ResponsiveContainer width="100%" height="100%">
-                      <AreaChart data={revenueData}>
+                      <div>
                         <CartesianGrid strokeDasharray="3 3" />
                         <XAxis dataKey="month" />
                         <YAxis />
                         <RechartsTooltip 
                           formatter={(value: any) => [`₵${value.toLocaleString()}`, 'Revenue']}
                         />
-                        <Area 
-                          type="monotone" 
-                          dataKey="revenue" 
-                          stroke="#f97316" 
-                          fill="#f97316" 
-                          fillOpacity={0.3}
-                        />
-                      </AreaChart>
+                        <div>Revenue Chart Placeholder</div>
+                      </div>
                     </ResponsiveContainer>
                   </Card>
                 </Col>

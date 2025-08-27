@@ -14,7 +14,6 @@ import {
   App
 } from 'antd'
 import { 
-  UserOutlined, 
   LockOutlined, 
   EyeOutlined, 
   EyeInvisibleOutlined,
@@ -32,7 +31,6 @@ const { Title, Text, Link } = Typography
 
 const Login: React.FC = () => {
   const [loading, setLoading] = useState(false)
-  const [showPassword, setShowPassword] = useState(false)
   const [rememberMe, setRememberMe] = useState(false)
   const [form] = Form.useForm()
   const navigate = useNavigate()
@@ -52,7 +50,7 @@ const Login: React.FC = () => {
         id: '1',
         name: 'John Doe',
         email: values.email,
-        role: 'Super Admin',
+        role: 'superAdmin' as const,
         avatar: undefined,
         token: 'mock-jwt-token'
       }
@@ -116,7 +114,7 @@ const Login: React.FC = () => {
             <Text type="secondary" className="text-center block">
               Sign in to your account to continue
             </Text>
-          </div>
+      </div>
 
           {/* Demo Login Alert */}
           <Alert
@@ -144,7 +142,7 @@ const Login: React.FC = () => {
             }}
           >
             <Form.Item
-              name="email"
+                  name="email"
               label="Email Address"
               rules={[
                 { required: true, message: 'Please enter your email' },
@@ -159,7 +157,7 @@ const Login: React.FC = () => {
             </Form.Item>
 
             <Form.Item
-              name="password"
+                  name="password"
               label="Password"
               rules={[
                 { required: true, message: 'Please enter your password' },
@@ -168,7 +166,7 @@ const Login: React.FC = () => {
             >
               <Input.Password
                 prefix={<LockOutlined className="text-gray-400" />}
-                placeholder="Enter your password"
+                  placeholder="Enter your password"
                 size="large"
                 iconRender={(visible) => 
                   visible ? <EyeOutlined /> : <EyeInvisibleOutlined />
@@ -283,4 +281,4 @@ const Login: React.FC = () => {
   )
 }
 
-export default Login
+export default Login 

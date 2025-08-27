@@ -16,18 +16,13 @@ import {
   Popconfirm,
   Tooltip,
   Badge,
-  Tabs,
-  List,
   Descriptions,
   Timeline,
-  Statistic,
-  Progress,
-  Divider
+  Statistic
 } from 'antd'
 import { 
   ShoppingCartOutlined, 
   SearchOutlined, 
-  FilterOutlined,
   EditOutlined,
   DeleteOutlined,
   EyeOutlined,
@@ -51,8 +46,6 @@ import { RootState } from '../store'
 import { 
   fetchOrdersStart, 
   fetchOrdersSuccess, 
-  fetchOrdersFailure,
-  addOrder,
   updateOrder,
   deleteOrder 
 } from '../store/slices/ordersSlice'
@@ -144,7 +137,7 @@ const Orders: React.FC = () => {
     // Simulate loading orders
     dispatch(fetchOrdersStart())
     setTimeout(() => {
-      dispatch(fetchOrdersSuccess(mockOrders))
+      dispatch(fetchOrdersSuccess(mockOrders as any))
     }, 1000)
   }, [dispatch])
 
@@ -159,16 +152,7 @@ const Orders: React.FC = () => {
     }
   }
 
-  const getStatusIcon = (status: string) => {
-    switch (status) {
-      case 'Completed': return <CheckCircleOutlined />
-      case 'Processing': return <ClockCircleOutlined />
-      case 'Pending': return <ClockCircleOutlined />
-      case 'Cancelled': return <CloseCircleOutlined />
-      case 'Refunded': return <ExclamationCircleOutlined />
-      default: return <ClockCircleOutlined />
-    }
-  }
+
 
   const getPaymentMethodIcon = (method: string) => {
     switch (method) {
@@ -195,18 +179,7 @@ const Orders: React.FC = () => {
     setOrderDetailsVisible(true)
   }
 
-  const handleStatusChange = (orderId: string, newStatus: string) => {
-    const order = orders.find(o => o.id === orderId)
-    if (order) {
-      const updatedOrder = { 
-        ...order, 
-        status: newStatus,
-        completedDate: newStatus === 'Completed' ? new Date().toISOString() : order.completedDate
-      }
-      dispatch(updateOrder(updatedOrder))
-      message.success(`Order status updated to ${newStatus}`)
-    }
-  }
+
 
   const handleRefund = (order: any) => {
     setSelectedOrder(order)
@@ -218,7 +191,7 @@ const Orders: React.FC = () => {
       const values = await refundForm.validateFields()
       const updatedOrder = { 
         ...selectedOrder, 
-        status: 'Refunded',
+        status: 'Refunded' as const,
         paymentStatus: 'Refunded',
         refundAmount: values.refundAmount,
         refundReason: values.refundReason,
@@ -279,7 +252,6 @@ const Orders: React.FC = () => {
         <Badge 
           status={getStatusColor(status) as any} 
           text={status}
-          icon={getStatusIcon(status)}
         />
       ),
     },
@@ -458,7 +430,7 @@ const Orders: React.FC = () => {
             <RangePicker style={{ width: '100%' }} placeholder={['Start Date', 'End Date']} />
           </Col>
           <Col xs={24} sm={12} md={4}>
-            <Button icon={<FilterOutlined />} block>
+            <Button block>
               Apply Filters
             </Button>
           </Col>
@@ -591,7 +563,6 @@ const Orders: React.FC = () => {
                     <Badge 
                       status={getStatusColor(selectedOrder.status) as any} 
                       text={selectedOrder.status}
-                      icon={getStatusIcon(selectedOrder.status)}
                     />
                     <Tag color="blue">{selectedOrder.paymentMethod}</Tag>
                     <Tag color={selectedOrder.paymentStatus === 'Paid' ? 'green' : 'orange'}>

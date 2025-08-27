@@ -1,15 +1,24 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit'
 
+interface PlanTier {
+  id: string
+  name: string
+  price: number
+  features: string[]
+}
+
 interface Plan {
   id: string
   title: string
   description: string
   type: 'Villa' | 'Bungalow' | 'Townhouse' | 'Cottage' | 'Farmhouse'
   status: 'Draft' | 'Published' | 'Archived' | 'Pending Review'
-  price: number
+  tiers: PlanTier[]
   featured: boolean
   createdAt: string
   updatedAt: string
+  downloads?: number
+  views?: number
 }
 
 interface PlansState {

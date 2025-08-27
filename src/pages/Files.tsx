@@ -21,7 +21,7 @@ import {
   Badge,
   Tooltip,
   Popconfirm,
-  Alert,
+
   Statistic
 } from 'antd'
 import { 
@@ -145,7 +145,7 @@ const Files: React.FC = () => {
     }
   }
 
-  const handleUpload = async (values: any) => {
+  const handleUpload = async () => {
     setUploading(true)
     setUploadProgress(0)
     

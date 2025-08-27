@@ -13,13 +13,10 @@ import {
   Modal,
   Form,
   Avatar,
-  Switch,
   message,
   Popconfirm,
   Tooltip,
   Badge,
-  Tabs,
-  List,
   Descriptions,
   Timeline
 } from 'antd'
@@ -47,7 +44,6 @@ import { RootState } from '../store'
 import { 
   fetchUsersStart, 
   fetchUsersSuccess, 
-  fetchUsersFailure,
   addUser,
   updateUser,
   deleteUser 
@@ -126,7 +122,7 @@ const Users: React.FC = () => {
     // Simulate loading users
     dispatch(fetchUsersStart())
     setTimeout(() => {
-      dispatch(fetchUsersSuccess(mockUsers))
+      dispatch(fetchUsersSuccess(mockUsers as any))
     }, 1000)
   }, [dispatch])
 
@@ -141,16 +137,7 @@ const Users: React.FC = () => {
     }
   }
 
-  const getRoleIcon = (role: string) => {
-    switch (role) {
-      case 'superAdmin': return <CrownOutlined />
-      case 'admin': return <SettingOutlined />
-      case 'contentManager': return <TeamOutlined />
-      case 'orderProcessor': return <UserOutlined />
-      case 'support': return <UserOutlined />
-      default: return <UserOutlined />
-    }
-  }
+
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -161,14 +148,7 @@ const Users: React.FC = () => {
     }
   }
 
-  const getStatusIcon = (status: string) => {
-    switch (status) {
-      case 'active': return <CheckCircleOutlined />
-      case 'suspended': return <ClockCircleOutlined />
-      case 'banned': return <LockOutlined />
-      default: return <UserOutlined />
-    }
-  }
+
 
   const handleAddUser = () => {
     setEditingUser(null)
@@ -195,7 +175,7 @@ const Users: React.FC = () => {
   const handleStatusChange = (userId: string, newStatus: string) => {
     const user = users.find(u => u.id === userId)
     if (user) {
-      dispatch(updateUser({ ...user, status: newStatus }))
+              dispatch(updateUser({ ...user, status: newStatus as 'active' | 'suspended' | 'banned' }))
       message.success(`User status updated to ${newStatus}`)
     }
   }
@@ -210,6 +190,8 @@ const Users: React.FC = () => {
         const newUser = {
           id: Date.now().toString(),
           ...values,
+          role: values.role as 'superAdmin' | 'admin' | 'contentManager' | 'orderProcessor' | 'support',
+          status: values.status as 'active' | 'suspended' | 'banned',
           createdAt: new Date().toISOString(),
           lastLogin: null,
           totalOrders: 0,
@@ -246,8 +228,8 @@ const Users: React.FC = () => {
       dataIndex: 'role',
       key: 'role',
       render: (role: string) => (
-        <Tag color={getRoleColor(role)} icon={getRoleIcon(role)}>
-          {role.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase())}
+        <Tag color={getRoleColor(role)}>
+          {role.replace(/([A-Z])/g, ' $1').replace(/^./, (str: string) => str.toUpperCase())}
         </Tag>
       ),
     },
@@ -259,7 +241,6 @@ const Users: React.FC = () => {
         <Badge 
           status={getStatusColor(status) as any} 
           text={status.charAt(0).toUpperCase() + status.slice(1)}
-          icon={getStatusIcon(status)}
         />
       ),
     },
@@ -534,8 +515,8 @@ const Users: React.FC = () => {
                       <h2 className="text-xl font-bold text-gray-900 mb-1">{selectedUser.name}</h2>
                       <p className="text-gray-600 mb-2">{selectedUser.email}</p>
                       <Space>
-                        <Tag color={getRoleColor(selectedUser.role)} icon={getRoleIcon(selectedUser.role)}>
-                          {selectedUser.role.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase())}
+                        <Tag color={getRoleColor(selectedUser.role)}>
+                          {selectedUser.role.replace(/([A-Z])/g, ' $1').replace(/^./, (str: string) => str.toUpperCase())}
                         </Tag>
                         <Badge 
                           status={getStatusColor(selectedUser.status) as any} 
@@ -580,7 +561,7 @@ const Users: React.FC = () => {
                     </Descriptions.Item>
                     <Descriptions.Item label="Role">
                       <Tag color={getRoleColor(selectedUser.role)}>
-                        {selectedUser.role.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase())}
+                        {selectedUser.role.replace(/([A-Z])/g, ' $1').replace(/^./, (str: string) => str.toUpperCase())}
                       </Tag>
                     </Descriptions.Item>
                     <Descriptions.Item label="Status">

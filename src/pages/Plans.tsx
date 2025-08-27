@@ -23,7 +23,6 @@ import {
 import { 
   PlusOutlined, 
   SearchOutlined, 
-  FilterOutlined,
   EditOutlined,
   DeleteOutlined,
   EyeOutlined,
@@ -31,7 +30,6 @@ import {
   ClockCircleOutlined,
   FileTextOutlined,
   PictureOutlined,
-  DollarOutlined,
   MinusCircleOutlined
 } from '@ant-design/icons'
 import { useSelector, useDispatch } from 'react-redux'
@@ -39,7 +37,6 @@ import { RootState } from '../store'
 import { 
   fetchPlansStart, 
   fetchPlansSuccess, 
-  fetchPlansFailure,
   addPlan,
   updatePlan,
   deletePlan 
@@ -51,7 +48,6 @@ const { RangePicker } = DatePicker
 const { TextArea } = Input
 
 const Plans: React.FC = () => {
-  const [viewMode, setViewMode] = useState<'table' | 'grid'>('table')
   const [isModalVisible, setIsModalVisible] = useState(false)
   const [editingPlan, setEditingPlan] = useState<any>(null)
   const [detailsPlan, setDetailsPlan] = useState<any>(null)
@@ -89,8 +85,8 @@ const Plans: React.FC = () => {
         }
       ],
       featured: true,
-      createdAt: '2024-01-15',
-      updatedAt: '2024-01-15',
+          createdAt: '2024-01-15',
+          updatedAt: '2024-01-15',
       downloads: 45,
       views: 120
     },
@@ -121,8 +117,8 @@ const Plans: React.FC = () => {
         }
       ],
       featured: false,
-      createdAt: '2024-01-14',
-      updatedAt: '2024-01-14',
+          createdAt: '2024-01-14',
+          updatedAt: '2024-01-14',
       downloads: 23,
       views: 67
     },
@@ -196,7 +192,7 @@ const Plans: React.FC = () => {
     // Simulate loading plans
     dispatch(fetchPlansStart())
     setTimeout(() => {
-      dispatch(fetchPlansSuccess(mockPlans))
+      dispatch(fetchPlansSuccess(mockPlans as any))
     }, 1000)
   }, [dispatch])
 
@@ -210,15 +206,7 @@ const Plans: React.FC = () => {
     }
   }
 
-  const getStatusIcon = (status: string) => {
-    switch (status) {
-      case 'Published': return <CheckCircleOutlined />
-      case 'Pending Review': return <ClockCircleOutlined />
-      case 'Draft': return <FileTextOutlined />
-      case 'Archived': return <FileTextOutlined />
-      default: return <FileTextOutlined />
-    }
-  }
+
 
   const handleAddPlan = () => {
     setEditingPlan(null)
@@ -321,7 +309,6 @@ const Plans: React.FC = () => {
         <Badge 
           status={getStatusColor(status) as any} 
           text={status}
-          icon={getStatusIcon(status)}
         />
       ),
     },
@@ -615,8 +602,8 @@ const Plans: React.FC = () => {
                               style={{ width: '100%' }}
                               placeholder="Enter price"
                               min={0}
-                              formatter={value => `₵ ${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ',')}
-                              parser={value => value!.replace(/\₵\s?|(,*)/g, '')}
+                              formatter={(value) => `₵ ${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ',')}
+                              parser={(value) => Number(value!.replace(/\₵\s?|(,*)/g, '')) as any}
                             />
                           </Form.Item>
                         </Col>
@@ -678,7 +665,7 @@ const Plans: React.FC = () => {
                   <div>
                     <PictureOutlined />
                     <div style={{ marginTop: 8 }}>Upload</div>
-                  </div>
+        </div>
                 </Upload>
               </Form.Item>
             </Col>

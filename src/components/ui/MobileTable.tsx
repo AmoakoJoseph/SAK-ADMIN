@@ -1,5 +1,5 @@
 import React from 'react'
-import { Card, Tag, Space, Button, Tooltip, Popconfirm } from 'antd'
+import { Card, Tag, Button, Tooltip, Popconfirm } from 'antd'
 import { EditOutlined, DeleteOutlined, EyeOutlined } from '@ant-design/icons'
 
 interface MobileTableProps {

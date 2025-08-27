@@ -1,4 +1,3 @@
-import React from 'react'
 import { Routes, Route } from 'react-router-dom'
 import { Layout } from 'antd'
 import AdminLayout from './components/layout/AdminLayout'
@@ -15,8 +14,6 @@ import Security from './pages/Security'
 import Login from './pages/Login'
 import ForgotPassword from './pages/ForgotPassword'
 import NotificationProvider from './components/ui/NotificationProvider'
-
-const { Content } = Layout
 
 function App() {
   return (

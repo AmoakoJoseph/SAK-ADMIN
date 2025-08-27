@@ -14,12 +14,10 @@ import {
   Timeline,
   Divider,
   Badge,
-  Tooltip,
   message
 } from 'antd'
 import { 
   EditOutlined, 
-  DeleteOutlined, 
   DownloadOutlined, 
   EyeOutlined,
   CheckCircleOutlined,
@@ -31,9 +29,8 @@ import {
   UserOutlined,
   ShareAltOutlined
 } from '@ant-design/icons'
-import { useSelector, useDispatch } from 'react-redux'
-import { RootState } from '../../store'
-import { updatePlan, deletePlan } from '../../store/slices/plansSlice'
+import { useDispatch } from 'react-redux'
+import { updatePlan } from '../../store/slices/plansSlice'
 
 interface PlanDetailsProps {
   plan: any
@@ -59,26 +56,14 @@ const PlanDetails: React.FC<PlanDetailsProps> = ({ plan, visible, onClose, onEdi
     }
   }
 
-  const getStatusIcon = (status: string) => {
-    switch (status) {
-      case 'Published': return <CheckCircleOutlined />
-      case 'Pending Review': return <ClockCircleOutlined />
-      case 'Draft': return <FileTextOutlined />
-      case 'Archived': return <FileTextOutlined />
-      default: return <FileTextOutlined />
-    }
-  }
+
 
   const handleStatusChange = (newStatus: string) => {
     dispatch(updatePlan({ ...plan, status: newStatus }))
     message.success(`Plan status updated to ${newStatus}`)
   }
 
-  const handleDelete = () => {
-    dispatch(deletePlan(plan.id))
-    message.success('Plan deleted successfully')
-    onClose()
-  }
+
 
   const handleImagePreview = (url: string) => {
     setSelectedImage(url)
@@ -146,7 +131,7 @@ const PlanDetails: React.FC<PlanDetailsProps> = ({ plan, visible, onClose, onEdi
                   <Badge 
                     status={getStatusColor(plan.status) as any} 
                     text={plan.status}
-                    icon={getStatusIcon(plan.status)}
+
                   />
                   {plan.featured && <Tag color="green">Featured</Tag>}
                 </Space>

@@ -1,5 +1,5 @@
 import React, { useState } from 'react'
-import { Layout, Menu, Avatar, Dropdown, Button, Badge, Drawer } from 'antd'
+import { Layout, Menu, Avatar, Dropdown, Button, Drawer } from 'antd'
 import { Outlet, useNavigate, useLocation } from 'react-router-dom'
 import {
   DashboardOutlined,
@@ -10,7 +10,6 @@ import {
   SettingOutlined,
   MenuFoldOutlined,
   MenuUnfoldOutlined,
-  BellOutlined,
   LogoutOutlined,
   FolderOutlined,
   MessageOutlined,
