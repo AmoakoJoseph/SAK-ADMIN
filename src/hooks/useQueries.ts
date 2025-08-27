@@ -6,7 +6,12 @@ import {
   ordersAPI, 
   paymentsAPI, 
   analyticsAPI, 
-  settingsAPI 
+  settingsAPI,
+  reviewsAPI,
+  notificationsAPI,
+  supportAPI,
+  downloadsAPI,
+  communicationsAPI
 } from '../services/api';
 
 // Query Keys
@@ -37,6 +42,32 @@ export const queryKeys = {
   },
   settings: {
     all: ['settings'] as const,
+  },
+  reviews: {
+    all: ['reviews'] as const,
+    detail: (id: string) => ['reviews', id] as const,
+  },
+  notifications: {
+    admin: ['notifications', 'admin'] as const,
+    count: ['notifications', 'admin', 'count'] as const,
+    system: ['notifications', 'system'] as const,
+  },
+  support: {
+    tickets: ['support', 'tickets'] as const,
+    ticket: (id: string) => ['support', 'tickets', id] as const,
+    messages: (ticketId: string) => ['support', 'tickets', ticketId, 'messages'] as const,
+  },
+  downloads: {
+    all: ['downloads'] as const,
+    detail: (id: string) => ['downloads', id] as const,
+    byUser: (userId: string) => ['downloads', 'user', userId] as const,
+    byPlan: (planId: string) => ['downloads', 'plan', planId] as const,
+  },
+  communications: {
+    all: ['communications'] as const,
+    detail: (id: string) => ['communications', id] as const,
+    templates: ['communications', 'templates'] as const,
+    logs: ['communications', 'logs'] as const,
   },
 };
 
@@ -188,6 +219,17 @@ export const useUpdateOrderStatus = () => {
   });
 };
 
+export const useDeleteOrder = () => {
+  const queryClient = useQueryClient();
+  
+  return useMutation({
+    mutationFn: (orderId: string) => ordersAPI.delete(orderId),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.orders.all });
+    },
+  });
+};
+
 // Payments Hooks
 export const usePayments = () => {
   return useQuery({
@@ -237,5 +279,308 @@ export const useUpdateSettings = () => {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: queryKeys.settings.all });
     },
+  });
+};
+
+// Reviews Hooks
+export const useReviews = (filters: any = {}) => {
+  return useQuery({
+    queryKey: [...queryKeys.reviews.all, filters],
+    queryFn: () => reviewsAPI.getAll(filters),
+  });
+};
+
+export const useUpdateReviewStatus = () => {
+  const queryClient = useQueryClient();
+  
+  return useMutation({
+    mutationFn: ({ reviewId, status }: { reviewId: string; status: string }) =>
+      reviewsAPI.updateStatus(reviewId, status),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.reviews.all });
+    },
+  });
+};
+
+// Notifications Hooks
+export const useAdminNotifications = (filters: any = {}) => {
+  return useQuery({
+    queryKey: [...queryKeys.notifications.admin, filters],
+    queryFn: () => notificationsAPI.getAdminNotifications(filters),
+  });
+};
+
+export const useNotificationCount = () => {
+  return useQuery({
+    queryKey: queryKeys.notifications.count,
+    queryFn: () => notificationsAPI.getNotificationCount(),
+  });
+};
+
+export const useMarkNotificationAsRead = () => {
+  const queryClient = useQueryClient();
+  
+  return useMutation({
+    mutationFn: (notificationId: string) => notificationsAPI.markAsRead(notificationId),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.notifications.admin });
+      queryClient.invalidateQueries({ queryKey: queryKeys.notifications.count });
+    },
+  });
+};
+
+export const useMarkAllNotificationsAsRead = () => {
+  const queryClient = useQueryClient();
+  
+  return useMutation({
+    mutationFn: () => notificationsAPI.markAllAsRead(),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.notifications.admin });
+      queryClient.invalidateQueries({ queryKey: queryKeys.notifications.count });
+    },
+  });
+};
+
+export const useDeleteNotification = () => {
+  const queryClient = useQueryClient();
+  
+  return useMutation({
+    mutationFn: (notificationId: string) => notificationsAPI.deleteNotification(notificationId),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.notifications.admin });
+      queryClient.invalidateQueries({ queryKey: queryKeys.notifications.count });
+    },
+  });
+};
+
+export const useCreateNotification = () => {
+  const queryClient = useQueryClient();
+  
+  return useMutation({
+    mutationFn: (notificationData: any) => notificationsAPI.createNotification(notificationData),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.notifications.system });
+    },
+  });
+};
+
+// Support Hooks
+export const useSupportTickets = (filters: any = {}) => {
+  return useQuery({
+    queryKey: [...queryKeys.support.tickets, filters],
+    queryFn: () => supportAPI.getAllTickets(filters),
+  });
+};
+
+export const useSupportTicket = (ticketId: string) => {
+  return useQuery({
+    queryKey: queryKeys.support.ticket(ticketId),
+    queryFn: () => supportAPI.getTicketById(ticketId),
+    enabled: !!ticketId,
+  });
+};
+
+export const useAssignTicket = () => {
+  const queryClient = useQueryClient();
+  
+  return useMutation({
+    mutationFn: ({ ticketId, assignedTo }: { ticketId: string; assignedTo: string }) =>
+      supportAPI.assignTicket(ticketId, assignedTo),
+    onSuccess: (_, { ticketId }) => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.support.tickets });
+      queryClient.invalidateQueries({ queryKey: queryKeys.support.ticket(ticketId) });
+    },
+  });
+};
+
+export const useUpdateTicketStatus = () => {
+  const queryClient = useQueryClient();
+  
+  return useMutation({
+    mutationFn: ({ ticketId, status }: { ticketId: string; status: string }) =>
+      supportAPI.updateTicketStatus(ticketId, status),
+    onSuccess: (_, { ticketId }) => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.support.tickets });
+      queryClient.invalidateQueries({ queryKey: queryKeys.support.ticket(ticketId) });
+    },
+  });
+};
+
+export const useTicketMessages = (ticketId: string, filters: any = {}) => {
+  return useQuery({
+    queryKey: [...queryKeys.support.messages(ticketId), filters],
+    queryFn: () => supportAPI.getTicketMessages(ticketId, filters),
+    enabled: !!ticketId,
+  });
+};
+
+export const useAddAdminMessage = () => {
+  const queryClient = useQueryClient();
+  
+  return useMutation({
+    mutationFn: ({ ticketId, message, options }: { ticketId: string; message: string; options?: any }) =>
+      supportAPI.addAdminMessage(ticketId, message, options),
+    onSuccess: (_, { ticketId }) => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.support.messages(ticketId) });
+    },
+  });
+};
+
+// Downloads Hooks
+export const useDownloads = (filters: any = {}) => {
+  return useQuery({
+    queryKey: [...queryKeys.downloads.all, filters],
+    queryFn: () => downloadsAPI.getAll(filters),
+  });
+};
+
+export const useDownload = (downloadId: string) => {
+  return useQuery({
+    queryKey: queryKeys.downloads.detail(downloadId),
+    queryFn: () => downloadsAPI.getById(downloadId),
+    enabled: !!downloadId,
+  });
+};
+
+export const useDownloadsByUser = (userId: string) => {
+  return useQuery({
+    queryKey: queryKeys.downloads.byUser(userId),
+    queryFn: () => downloadsAPI.getByUser(userId),
+    enabled: !!userId,
+  });
+};
+
+export const useDownloadsByPlan = (planId: string) => {
+  return useQuery({
+    queryKey: queryKeys.downloads.byPlan(planId),
+    queryFn: () => downloadsAPI.getByPlan(planId),
+    enabled: !!planId,
+  });
+};
+
+// Communications Hooks
+export const useCommunications = (filters: any = {}) => {
+  return useQuery({
+    queryKey: [...queryKeys.communications.all, filters],
+    queryFn: () => communicationsAPI.getAll(filters),
+  });
+};
+
+export const useCommunication = (communicationId: string) => {
+  return useQuery({
+    queryKey: queryKeys.communications.detail(communicationId),
+    queryFn: () => communicationsAPI.getById(communicationId),
+    enabled: !!communicationId,
+  });
+};
+
+export const useCreateCommunication = () => {
+  const queryClient = useQueryClient();
+  
+  return useMutation({
+    mutationFn: (communicationData: any) => communicationsAPI.create(communicationData),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.communications.all });
+    },
+  });
+};
+
+export const useUpdateCommunication = () => {
+  const queryClient = useQueryClient();
+  
+  return useMutation({
+    mutationFn: ({ communicationId, communicationData }: { communicationId: string; communicationData: any }) =>
+      communicationsAPI.update(communicationId, communicationData),
+    onSuccess: (_, { communicationId }) => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.communications.all });
+      queryClient.invalidateQueries({ queryKey: queryKeys.communications.detail(communicationId) });
+    },
+  });
+};
+
+export const useDeleteCommunication = () => {
+  const queryClient = useQueryClient();
+  
+  return useMutation({
+    mutationFn: (communicationId: string) => communicationsAPI.delete(communicationId),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.communications.all });
+    },
+  });
+};
+
+export const useCommunicationTemplates = () => {
+  return useQuery({
+    queryKey: queryKeys.communications.templates,
+    queryFn: () => communicationsAPI.getTemplates(),
+  });
+};
+
+export const useCommunicationLogs = (filters: any = {}) => {
+  return useQuery({
+    queryKey: [...queryKeys.communications.logs, filters],
+    queryFn: () => communicationsAPI.getLogs(filters),
+  });
+};
+
+// Enhanced Analytics Hooks
+export const useDashboardOverview = () => {
+  return useQuery({
+    queryKey: ['analytics', 'dashboard', 'overview'],
+    queryFn: () => analyticsAPI.getDashboardOverview(),
+  });
+};
+
+export const useAnalyticsMetrics = (filters: any = {}) => {
+  return useQuery({
+    queryKey: ['analytics', 'metrics', filters],
+    queryFn: () => analyticsAPI.getMetrics(filters),
+  });
+};
+
+export const useAnalyticsEvents = (filters: any = {}) => {
+  return useQuery({
+    queryKey: ['analytics', 'events', filters],
+    queryFn: () => analyticsAPI.getEvents(filters),
+  });
+};
+
+export const useAnalyticsSessions = (filters: any = {}) => {
+  return useQuery({
+    queryKey: ['analytics', 'sessions', filters],
+    queryFn: () => analyticsAPI.getSessions(filters),
+  });
+};
+
+export const useAnalyticsPageViews = (filters: any = {}) => {
+  return useQuery({
+    queryKey: ['analytics', 'pageViews', filters],
+    queryFn: () => analyticsAPI.getPageViews(filters),
+  });
+};
+
+export const useCreateAnalyticsReport = () => {
+  const queryClient = useQueryClient();
+  
+  return useMutation({
+    mutationFn: (reportData: any) => analyticsAPI.createReport(reportData),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['analytics', 'reports'] });
+    },
+  });
+};
+
+export const useAnalyticsReports = (filters: any = {}) => {
+  return useQuery({
+    queryKey: ['analytics', 'reports', filters],
+    queryFn: () => analyticsAPI.getAllReports(filters),
+  });
+};
+
+export const useAnalyticsReport = (reportId: string) => {
+  return useQuery({
+    queryKey: ['analytics', 'reports', reportId],
+    queryFn: () => analyticsAPI.getReportById(reportId),
+    enabled: !!reportId,
   });
 };

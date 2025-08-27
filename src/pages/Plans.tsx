@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState } from 'react'
 import { 
   Card, 
   Button, 
@@ -18,7 +18,9 @@ import {
   message,
   Popconfirm,
   Tooltip,
-  Badge
+  Badge,
+  Alert,
+  Spin
 } from 'antd'
 import { 
   PlusOutlined, 
@@ -30,17 +32,10 @@ import {
   ClockCircleOutlined,
   FileTextOutlined,
   PictureOutlined,
-  MinusCircleOutlined
+  MinusCircleOutlined,
+  ReloadOutlined
 } from '@ant-design/icons'
-import { useSelector, useDispatch } from 'react-redux'
-import { RootState } from '../store'
-import { 
-  fetchPlansStart, 
-  fetchPlansSuccess, 
-  addPlan,
-  updatePlan,
-  deletePlan 
-} from '../store/slices/plansSlice'
+import { usePlans, useUpdatePlan, useDeletePlan, useCreatePlan } from '../hooks/useQueries'
 import PlanDetails from '../components/plans/PlanDetails'
 
 const { Option } = Select
@@ -53,9 +48,7 @@ const Plans: React.FC = () => {
   const [detailsPlan, setDetailsPlan] = useState<any>(null)
   const [detailsVisible, setDetailsVisible] = useState(false)
   const [form] = Form.useForm()
-  const dispatch = useDispatch()
-  const { plans, isLoading } = useSelector((state: RootState) => state.plans)
-
+  
   // Mock data for demonstration with tiered pricing
   const mockPlans = [
     {
@@ -85,8 +78,8 @@ const Plans: React.FC = () => {
         }
       ],
       featured: true,
-          createdAt: '2024-01-15',
-          updatedAt: '2024-01-15',
+      createdAt: '2024-01-15',
+      updatedAt: '2024-01-15',
       downloads: 45,
       views: 120
     },
@@ -117,8 +110,8 @@ const Plans: React.FC = () => {
         }
       ],
       featured: false,
-          createdAt: '2024-01-14',
-          updatedAt: '2024-01-14',
+      createdAt: '2024-01-14',
+      updatedAt: '2024-01-14',
       downloads: 23,
       views: 67
     },
@@ -151,50 +144,21 @@ const Plans: React.FC = () => {
       featured: true,
       createdAt: '2024-01-13',
       updatedAt: '2024-01-13',
-      downloads: 12,
-      views: 89
-    },
-    {
-      id: '4',
-      title: 'Rustic Cottage',
-      description: 'Charming 2-bedroom cottage with traditional design',
-      type: 'Cottage',
-      status: 'Published',
-      tiers: [
-        {
-          id: '4-1',
-          name: 'Basic',
-          price: 1000,
-          features: ['PDF Plans', 'Basic Specifications', 'Email Support']
-        },
-        {
-          id: '4-2',
-          name: 'Standard',
-          price: 1500,
-          features: ['PDF Plans', 'CAD Files', 'Detailed Specifications', 'Email Support', 'Phone Support']
-        },
-        {
-          id: '4-3',
-          name: 'Premium',
-          price: 2200,
-          features: ['PDF Plans', 'CAD Files', '3D Models', 'Detailed Specifications', 'Priority Support', 'Custom Modifications']
-        }
-      ],
-      featured: false,
-      createdAt: '2024-01-12',
-      updatedAt: '2024-01-12',
-      downloads: 34,
-      views: 78
+      downloads: 78,
+      views: 234
     }
   ]
 
-  useEffect(() => {
-    // Simulate loading plans
-    dispatch(fetchPlansStart())
-    setTimeout(() => {
-      dispatch(fetchPlansSuccess(mockPlans as any))
-    }, 1000)
-  }, [dispatch])
+  // TanStack Query hooks
+  const { data: plansData, isLoading, error, refetch } = usePlans()
+  const updatePlanMutation = useUpdatePlan()
+  const deletePlanMutation = useDeletePlan()
+  const createPlanMutation = useCreatePlan()
+  
+  // Extract plans from API response or use mock data
+  const plans = plansData?.data || mockPlans
+
+
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -233,8 +197,15 @@ const Plans: React.FC = () => {
   }
 
   const handleDeletePlan = (planId: string) => {
-    dispatch(deletePlan(planId))
-    message.success('Plan deleted successfully')
+    deletePlanMutation.mutate(planId, {
+      onSuccess: () => {
+        message.success('Plan deleted successfully')
+      },
+      onError: (error) => {
+        message.error('Failed to delete plan')
+        console.error('Delete plan error:', error)
+      }
+    })
   }
 
   const handleViewDetails = (plan: any) => {
@@ -263,21 +234,34 @@ const Plans: React.FC = () => {
       }
       
       if (editingPlan) {
-        dispatch(updatePlan({ ...editingPlan, ...planData }))
-        message.success('Plan updated successfully')
+        updatePlanMutation.mutate(
+          { planId: editingPlan.id, planData: { ...editingPlan, ...planData } },
+          {
+            onSuccess: () => {
+              message.success('Plan updated successfully')
+              setIsModalVisible(false)
+            },
+            onError: (error) => {
+              message.error('Failed to update plan')
+              console.error('Update plan error:', error)
+            }
+          }
+        )
       } else {
-        const newPlan = {
-          id: Date.now().toString(),
-          ...planData,
-          createdAt: new Date().toISOString(),
-          updatedAt: new Date().toISOString(),
-          downloads: 0,
-          views: 0
-        }
-        dispatch(addPlan(newPlan))
-        message.success('Plan created successfully')
+        createPlanMutation.mutate(
+          planData,
+          {
+            onSuccess: () => {
+              message.success('Plan created successfully')
+              setIsModalVisible(false)
+            },
+            onError: (error) => {
+              message.error('Failed to create plan')
+              console.error('Create plan error:', error)
+            }
+          }
+        )
       }
-      setIsModalVisible(false)
     } catch (error) {
       console.error('Validation failed:', error)
     }
@@ -436,8 +420,44 @@ const Plans: React.FC = () => {
         </Row>
       </Card>
 
+      {/* Error Alert */}
+      {error && (
+        <Alert
+          message="Error Loading Plans"
+          description="Failed to load plans. Please try again."
+          type="error"
+          showIcon
+          action={
+            <Button size="small" onClick={() => refetch()}>
+              Retry
+            </Button>
+          }
+        />
+      )}
+
       {/* Plans Table */}
       <Card>
+        <div className="mb-4 flex justify-between items-center">
+          <div className="flex items-center space-x-2">
+            <Button 
+              icon={<ReloadOutlined />} 
+              onClick={() => refetch()}
+              loading={isLoading}
+            >
+              Refresh
+            </Button>
+            {updatePlanMutation.isPending && (
+              <span className="text-gray-500">Updating plan...</span>
+            )}
+            {deletePlanMutation.isPending && (
+              <span className="text-gray-500">Deleting plan...</span>
+            )}
+            {createPlanMutation.isPending && (
+              <span className="text-gray-500">Creating plan...</span>
+            )}
+          </div>
+        </div>
+        
         <Table
           columns={columns}
           dataSource={plans}

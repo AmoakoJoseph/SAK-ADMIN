@@ -20,7 +20,8 @@ import {
   Tag,
   Badge,
   Tooltip,
-  Popconfirm
+  Popconfirm,
+  Spin
 } from 'antd'
 import { 
   SettingOutlined,
@@ -44,6 +45,7 @@ import {
   KeyOutlined,
   SafetyOutlined
 } from '@ant-design/icons'
+import { useSettings, useUpdateSettings } from '../hooks/useQueries'
 
 
 const { Option } = Select
@@ -53,10 +55,40 @@ const { Title, Text } = Typography
 
 const Settings: React.FC = () => {
   const [activeTab, setActiveTab] = useState('general')
-  const [loading, setLoading] = useState(false)
   const [emailModalVisible, setEmailModalVisible] = useState(false)
   const [editingTemplate, setEditingTemplate] = useState<any>(null)
   const [form] = Form.useForm()
+  
+  // TanStack Query hooks
+  const { data: settingsData, isLoading, error, refetch } = useSettings()
+  const updateSettingsMutation = useUpdateSettings()
+  
+  // Extract settings from API response or use defaults
+  const settings = settingsData?.data || {
+    general: {
+      siteName: 'SAK CONSTRUCTIONS GH',
+      siteDescription: 'Premium Building Plans and Architectural Designs',
+      contactEmail: 'info@sakconstruction.com',
+      contactPhone: '+233 24 123 4567',
+      timezone: 'Africa/Accra',
+      currency: 'GHS'
+    },
+    email: {
+      smtpHost: 'smtp.gmail.com',
+      smtpPort: 587,
+      smtpUser: 'noreply@sakconstruction.com',
+      smtpPassword: '********',
+      fromName: 'SAK CONSTRUCTIONS GH',
+      fromEmail: 'noreply@sakconstruction.com'
+    },
+    security: {
+      sessionTimeout: 30,
+      maxLoginAttempts: 5,
+      passwordMinLength: 8,
+      requireTwoFactor: false,
+      ipWhitelist: []
+    }
+  }
 
   // Mock data
   const emailTemplates = [
@@ -126,16 +158,15 @@ const Settings: React.FC = () => {
   ]
 
   const handleSave = async (values: any) => {
-    setLoading(true)
-    try {
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 1000))
-      message.success('Settings saved successfully!')
-    } catch (error) {
-      message.error('Failed to save settings')
-    } finally {
-      setLoading(false)
-    }
+    updateSettingsMutation.mutate(values, {
+      onSuccess: () => {
+        message.success('Settings saved successfully!')
+      },
+      onError: (error) => {
+        message.error('Failed to save settings')
+        console.error('Save settings error:', error)
+      }
+    })
   }
 
   const handleEmailTemplateEdit = (template: any) => {
@@ -144,41 +175,20 @@ const Settings: React.FC = () => {
   }
 
   const handleEmailTemplateSave = async (values: any) => {
-    setLoading(true)
-    try {
-      await new Promise(resolve => setTimeout(resolve, 1000))
-      message.success('Email template updated successfully!')
-      setEmailModalVisible(false)
-      setEditingTemplate(null)
-    } catch (error) {
-      message.error('Failed to update email template')
-    } finally {
-      setLoading(false)
-    }
+    // For now, show success message since email template API is not implemented
+    message.success('Email template updated successfully!')
+    setEmailModalVisible(false)
+    setEditingTemplate(null)
   }
 
   const handleBackup = async () => {
-    setLoading(true)
-    try {
-      await new Promise(resolve => setTimeout(resolve, 2000))
-      message.success('System backup completed successfully!')
-    } catch (error) {
-      message.error('Backup failed')
-    } finally {
-      setLoading(false)
-    }
+    // For now, show success message since backup API is not implemented
+    message.success('System backup completed successfully!')
   }
 
   const handleClearCache = async () => {
-    setLoading(true)
-    try {
-      await new Promise(resolve => setTimeout(resolve, 1000))
-      message.success('Cache cleared successfully!')
-    } catch (error) {
-      message.error('Failed to clear cache')
-    } finally {
-      setLoading(false)
-    }
+    // For now, show success message since cache API is not implemented
+    message.success('Cache cleared successfully!')
   }
 
   const getLogIcon = (type: string) => {
@@ -209,14 +219,46 @@ const Settings: React.FC = () => {
 
   return (
     <div className="p-6">
+      {/* Error Alert */}
+      {error && (
+        <Alert
+          message="Error Loading Settings"
+          description="Failed to load system settings. Please try again."
+          type="error"
+          showIcon
+          action={
+            <Button size="small" onClick={() => refetch()}>
+              Retry
+            </Button>
+          }
+          className="mb-6"
+        />
+      )}
+
       <div className="mb-6">
-        <Title level={2} className="mb-2">
-          <SettingOutlined className="mr-2" />
-          System Settings
-        </Title>
-        <Text type="secondary">
+        <div className="flex justify-between items-center">
+          <div>
+            <Title level={2} className="mb-2">
+              <SettingOutlined className="mr-2" />
+              System Settings
+            </Title>
+            <Text type="secondary">
           Manage your system configuration, security settings, and preferences
         </Text>
+          </div>
+          <div className="flex items-center space-x-2">
+            <Button 
+              icon={<ReloadOutlined />} 
+              onClick={() => refetch()}
+              loading={isLoading}
+            >
+              Refresh
+            </Button>
+            {updateSettingsMutation.isPending && (
+              <span className="text-gray-500">Saving settings...</span>
+            )}
+          </div>
+        </div>
       </div>
 
       <Card>
@@ -330,7 +372,7 @@ const Settings: React.FC = () => {
                 </Col>
               </Row>
               <Divider />
-              <Button type="primary" htmlType="submit" loading={loading} icon={<SaveOutlined />}>
+              <Button type="primary" htmlType="submit" loading={updateSettingsMutation.isPending} icon={<SaveOutlined />}>
                 Save General Settings
               </Button>
             </Form>
@@ -455,7 +497,7 @@ const Settings: React.FC = () => {
               </Row>
               <Divider />
               <Space>
-                <Button type="primary" htmlType="submit" loading={loading} icon={<SaveOutlined />}>
+                <Button type="primary" htmlType="submit" loading={updateSettingsMutation.isPending} icon={<SaveOutlined />}>
                   Save Security Settings
                 </Button>
                 <Button icon={<SafetyOutlined />}>
@@ -575,7 +617,7 @@ const Settings: React.FC = () => {
                     </Form.Item>
                     <Form.Item>
                       <Space>
-                        <Button type="primary" htmlType="submit" loading={loading}>
+                        <Button type="primary" htmlType="submit">
                           Save Template
                         </Button>
                         <Button onClick={() => setEmailModalVisible(false)}>
@@ -689,7 +731,7 @@ const Settings: React.FC = () => {
               </Row>
               <Divider />
               <Space>
-                <Button type="primary" htmlType="submit" loading={loading} icon={<SaveOutlined />}>
+                <Button type="primary" htmlType="submit" loading={updateSettingsMutation.isPending} icon={<SaveOutlined />}>
                   Save Payment Settings
                 </Button>
                 <Button icon={<CreditCardOutlined />}>
@@ -718,7 +760,6 @@ const Settings: React.FC = () => {
                           type="primary" 
                           icon={<DownloadOutlined />}
                           onClick={handleBackup}
-                          loading={loading}
                           block
                         >
                           Create Backup
@@ -744,7 +785,6 @@ const Settings: React.FC = () => {
                         <Button 
                           icon={<ReloadOutlined />}
                           onClick={handleClearCache}
-                          loading={loading}
                           block
                         >
                           Clear Cache
@@ -774,10 +814,10 @@ const Settings: React.FC = () => {
                                         </Space>
                                       }
                                       description={
-              <div>
+                                        <div>
                                           <div><strong>Time:</strong> {log.timestamp}</div>
                                           <div><strong>User:</strong> {log.user}</div>
-          </div>
+                                        </div>
                                       }
                                     />
                                   </List.Item>

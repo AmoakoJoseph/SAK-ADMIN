@@ -149,10 +149,36 @@ export const usersAPI = {
   },
 };
 
-// Plans API
-export const plansAPI = {
+// Payments API
+export const paymentsAPI = {
   getAll: async (): Promise<ApiResponse<any[]>> => {
-    return apiRequest<ApiResponse<any[]>>('/plans');
+    return apiRequest<ApiResponse<any[]>>('/payments');
+  },
+
+  getById: async (paymentId: string): Promise<ApiResponse<any>> => {
+    return apiRequest<ApiResponse<any>>(`/payments/${paymentId}`);
+  },
+};
+
+// Settings API
+export const settingsAPI = {
+  get: async (): Promise<ApiResponse<any>> => {
+    return apiRequest<ApiResponse<any>>('/admin/settings');
+  },
+
+  update: async (settings: any): Promise<ApiResponse<any>> => {
+    return apiRequest<ApiResponse<any>>('/admin/settings', {
+      method: 'PUT',
+      body: JSON.stringify(settings),
+    });
+  },
+};
+
+// Enhanced Plans API with filtering and search
+export const plansAPI = {
+  getAll: async (filters: any = {}): Promise<ApiResponse<any[]>> => {
+    const queryParams = new URLSearchParams(filters).toString();
+    return apiRequest<ApiResponse<any[]>>(`/plans?${queryParams}`);
   },
 
   getById: async (planId: string): Promise<ApiResponse<any>> => {
@@ -178,16 +204,41 @@ export const plansAPI = {
       method: 'DELETE',
     });
   },
+
+  getFeatured: async (): Promise<ApiResponse<any[]>> => {
+    return apiRequest<ApiResponse<any[]>>('/plans/featured');
+  },
+
+  search: async (searchParams: any): Promise<ApiResponse<any[]>> => {
+    const queryParams = new URLSearchParams(searchParams).toString();
+    return apiRequest<ApiResponse<any[]>>(`/plans/search?${queryParams}`);
+  },
+
+  getReviews: async (planId: string): Promise<ApiResponse<any[]>> => {
+    return apiRequest<ApiResponse<any[]>>(`/plans/${planId}/reviews`);
+  },
+
+  getDownloads: async (planId: string): Promise<ApiResponse<any[]>> => {
+    return apiRequest<ApiResponse<any[]>>(`/plans/${planId}/downloads`);
+  },
 };
 
-// Orders API
+// Enhanced Orders API with filtering
 export const ordersAPI = {
-  getAll: async (): Promise<ApiResponse<any[]>> => {
-    return apiRequest<ApiResponse<any[]>>('/orders');
+  getAll: async (filters: any = {}): Promise<ApiResponse<any[]>> => {
+    const queryParams = new URLSearchParams(filters).toString();
+    return apiRequest<ApiResponse<any[]>>(`/orders?${queryParams}`);
   },
 
   getById: async (orderId: string): Promise<ApiResponse<any>> => {
     return apiRequest<ApiResponse<any>>(`/orders/${orderId}`);
+  },
+
+  update: async (orderId: string, updateData: any): Promise<ApiResponse<any>> => {
+    return apiRequest<ApiResponse<any>>(`/orders/${orderId}`, {
+      method: 'PUT',
+      body: JSON.stringify(updateData),
+    });
   },
 
   updateStatus: async (orderId: string, status: string): Promise<ApiResponse<any>> => {
@@ -196,20 +247,23 @@ export const ordersAPI = {
       body: JSON.stringify({ status }),
     });
   },
-};
 
-// Payments API
-export const paymentsAPI = {
-  getAll: async (): Promise<ApiResponse<any[]>> => {
-    return apiRequest<ApiResponse<any[]>>('/payments');
+  getItems: async (orderId: string): Promise<ApiResponse<any[]>> => {
+    return apiRequest<ApiResponse<any[]>>(`/orders/${orderId}/items`);
   },
 
-  getById: async (paymentId: string): Promise<ApiResponse<any>> => {
-    return apiRequest<ApiResponse<any>>(`/payments/${paymentId}`);
+  getPayments: async (orderId: string): Promise<ApiResponse<any[]>> => {
+    return apiRequest<ApiResponse<any[]>>(`/orders/${orderId}/payments`);
+  },
+
+  delete: async (orderId: string): Promise<ApiResponse<any>> => {
+    return apiRequest<ApiResponse<any>>(`/orders/${orderId}`, {
+      method: 'DELETE',
+    });
   },
 };
 
-// Analytics API
+// Enhanced Analytics API
 export const analyticsAPI = {
   getDashboardStats: async (): Promise<ApiResponse<any>> => {
     try {
@@ -234,18 +288,211 @@ export const analyticsAPI = {
       throw error;
     }
   },
-};
 
-// Settings API
-export const settingsAPI = {
-  get: async (): Promise<ApiResponse<any>> => {
-    return apiRequest<ApiResponse<any>>('/admin/settings');
+  getDashboardOverview: async (): Promise<ApiResponse<any>> => {
+    return apiRequest<ApiResponse<any>>('/analytics/dashboard/overview');
   },
 
-  update: async (settings: any): Promise<ApiResponse<any>> => {
-    return apiRequest<ApiResponse<any>>('/admin/settings', {
-      method: 'PUT',
-      body: JSON.stringify(settings),
+  getMetrics: async (filters: any = {}): Promise<ApiResponse<any>> => {
+    const queryParams = new URLSearchParams(filters).toString();
+    return apiRequest<ApiResponse<any>>(`/analytics/metrics?${queryParams}`);
+  },
+
+  getEvents: async (filters: any = {}): Promise<ApiResponse<any[]>> => {
+    const queryParams = new URLSearchParams(filters).toString();
+    return apiRequest<ApiResponse<any[]>>(`/analytics/events?${queryParams}`);
+  },
+
+  getSessions: async (filters: any = {}): Promise<ApiResponse<any[]>> => {
+    const queryParams = new URLSearchParams(filters).toString();
+    return apiRequest<ApiResponse<any[]>>(`/analytics/sessions?${queryParams}`);
+  },
+
+  getPageViews: async (filters: any = {}): Promise<ApiResponse<any[]>> => {
+    const queryParams = new URLSearchParams(filters).toString();
+    return apiRequest<ApiResponse<any[]>>(`/analytics/page-views?${queryParams}`);
+  },
+
+  createReport: async (reportData: any): Promise<ApiResponse<any>> => {
+    return apiRequest<ApiResponse<any>>('/analytics/reports', {
+      method: 'POST',
+      body: JSON.stringify(reportData),
     });
+  },
+
+  getAllReports: async (filters: any = {}): Promise<ApiResponse<any[]>> => {
+    const queryParams = new URLSearchParams(filters).toString();
+    return apiRequest<ApiResponse<any[]>>(`/analytics/reports?${queryParams}`);
+  },
+
+  getReportById: async (reportId: string): Promise<ApiResponse<any>> => {
+    return apiRequest<ApiResponse<any>>(`/analytics/reports/${reportId}`);
+  },
+};
+
+// Reviews API
+export const reviewsAPI = {
+  getAll: async (filters: any = {}): Promise<ApiResponse<any[]>> => {
+    const queryParams = new URLSearchParams(filters).toString();
+    return apiRequest<ApiResponse<any[]>>(`/reviews?${queryParams}`);
+  },
+
+  updateStatus: async (reviewId: string, status: string): Promise<ApiResponse<any>> => {
+    return apiRequest<ApiResponse<any>>(`/reviews/${reviewId}/status`, {
+      method: 'PUT',
+      body: JSON.stringify({ status }),
+    });
+  },
+};
+
+// Notifications API
+export const notificationsAPI = {
+  getAdminNotifications: async (filters: any = {}): Promise<ApiResponse<any[]>> => {
+    const queryParams = new URLSearchParams(filters).toString();
+    return apiRequest<ApiResponse<any[]>>(`/notifications/admin?${queryParams}`);
+  },
+
+  getNotificationCount: async (): Promise<ApiResponse<any>> => {
+    return apiRequest<ApiResponse<any>>('/notifications/admin/count');
+  },
+
+  markAsRead: async (notificationId: string): Promise<ApiResponse<any>> => {
+    return apiRequest<ApiResponse<any>>(`/notifications/admin/${notificationId}/read`, {
+      method: 'PUT',
+    });
+  },
+
+  markAllAsRead: async (): Promise<ApiResponse<any>> => {
+    return apiRequest<ApiResponse<any>>('/notifications/admin/read-all', {
+      method: 'PUT',
+    });
+  },
+
+  deleteNotification: async (notificationId: string): Promise<ApiResponse<any>> => {
+    return apiRequest<ApiResponse<any>>(`/notifications/admin/${notificationId}`, {
+      method: 'DELETE',
+    });
+  },
+
+  getAllNotifications: async (filters: any = {}): Promise<ApiResponse<any[]>> => {
+    const queryParams = new URLSearchParams(filters).toString();
+    return apiRequest<ApiResponse<any[]>>(`/notifications/admin/system?${queryParams}`);
+  },
+
+  createNotification: async (notificationData: any): Promise<ApiResponse<any>> => {
+    return apiRequest<ApiResponse<any>>('/notifications/admin/system', {
+      method: 'POST',
+      body: JSON.stringify(notificationData),
+    });
+  },
+
+  updateNotificationStatus: async (notificationId: string, status: string): Promise<ApiResponse<any>> => {
+    return apiRequest<ApiResponse<any>>(`/notifications/admin/system/${notificationId}/status`, {
+      method: 'PUT',
+      body: JSON.stringify({ status }),
+    });
+  },
+};
+
+// Support API
+export const supportAPI = {
+  getAllTickets: async (filters: any = {}): Promise<ApiResponse<any[]>> => {
+    const queryParams = new URLSearchParams(filters).toString();
+    return apiRequest<ApiResponse<any[]>>(`/support/admin/tickets?${queryParams}`);
+  },
+
+  getTicketById: async (ticketId: string): Promise<ApiResponse<any>> => {
+    return apiRequest<ApiResponse<any>>(`/support/admin/tickets/${ticketId}`);
+  },
+
+  assignTicket: async (ticketId: string, assignedTo: string): Promise<ApiResponse<any>> => {
+    return apiRequest<ApiResponse<any>>(`/support/admin/tickets/${ticketId}/assign`, {
+      method: 'PUT',
+      body: JSON.stringify({ assigned_to: assignedTo }),
+    });
+  },
+
+  updateTicketStatus: async (ticketId: string, status: string): Promise<ApiResponse<any>> => {
+    return apiRequest<ApiResponse<any>>(`/support/admin/tickets/${ticketId}/status`, {
+      method: 'PUT',
+      body: JSON.stringify({ status }),
+    });
+  },
+
+  getTicketMessages: async (ticketId: string, filters: any = {}): Promise<ApiResponse<any[]>> => {
+    const queryParams = new URLSearchParams(filters).toString();
+    return apiRequest<ApiResponse<any[]>>(`/support/admin/tickets/${ticketId}/messages?${queryParams}`);
+  },
+
+  addAdminMessage: async (ticketId: string, message: string, options: any = {}): Promise<ApiResponse<any>> => {
+    return apiRequest<ApiResponse<any>>(`/support/admin/tickets/${ticketId}/messages`, {
+      method: 'POST',
+      body: JSON.stringify({
+        message,
+        attachments: options.attachments || [],
+        is_internal: options.isInternal || false,
+      }),
+    });
+  },
+};
+
+// Downloads & Files API
+export const downloadsAPI = {
+  getAll: async (filters: any = {}): Promise<ApiResponse<any[]>> => {
+    const queryParams = new URLSearchParams(filters).toString();
+    return apiRequest<ApiResponse<any[]>>(`/downloads?${queryParams}`);
+  },
+
+  getById: async (downloadId: string): Promise<ApiResponse<any>> => {
+    return apiRequest<ApiResponse<any>>(`/downloads/${downloadId}`);
+  },
+
+  getByUser: async (userId: string): Promise<ApiResponse<any[]>> => {
+    return apiRequest<ApiResponse<any[]>>(`/downloads/user/${userId}`);
+  },
+
+  getByPlan: async (planId: string): Promise<ApiResponse<any[]>> => {
+    return apiRequest<ApiResponse<any[]>>(`/downloads/plan/${planId}`);
+  },
+};
+
+// Communications API
+export const communicationsAPI = {
+  getAll: async (filters: any = {}): Promise<ApiResponse<any[]>> => {
+    const queryParams = new URLSearchParams(filters).toString();
+    return apiRequest<ApiResponse<any[]>>(`/communications?${queryParams}`);
+  },
+
+  getById: async (communicationId: string): Promise<ApiResponse<any>> => {
+    return apiRequest<ApiResponse<any>>(`/communications/${communicationId}`);
+  },
+
+  create: async (communicationData: any): Promise<ApiResponse<any>> => {
+    return apiRequest<ApiResponse<any>>('/communications', {
+      method: 'POST',
+      body: JSON.stringify(communicationData),
+    });
+  },
+
+  update: async (communicationId: string, communicationData: any): Promise<ApiResponse<any>> => {
+    return apiRequest<ApiResponse<any>>(`/communications/${communicationId}`, {
+      method: 'PUT',
+      body: JSON.stringify(communicationData),
+    });
+  },
+
+  delete: async (communicationId: string): Promise<ApiResponse<any>> => {
+    return apiRequest<ApiResponse<any>>(`/communications/${communicationId}`, {
+      method: 'DELETE',
+    });
+  },
+
+  getTemplates: async (): Promise<ApiResponse<any[]>> => {
+    return apiRequest<ApiResponse<any[]>>('/communications/templates');
+  },
+
+  getLogs: async (filters: any = {}): Promise<ApiResponse<any[]>> => {
+    const queryParams = new URLSearchParams(filters).toString();
+    return apiRequest<ApiResponse<any[]>>(`/communications/logs?${queryParams}`);
   },
 };

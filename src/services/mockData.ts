@@ -117,7 +117,135 @@ export const mockData = {
       { name: 'Bank Transfer', value: 25, color: '#50C878' },
       { name: 'Credit Card', value: 10, color: '#FF6B6B' }
     ]
-  }
+  },
+
+  // Reviews Mock Data
+  reviews: [
+    {
+      id: '1',
+      user_id: '1',
+      plan_id: '1',
+      rating: 5,
+      comment: 'Excellent design! Very modern and functional.',
+      status: 'active',
+      created_at: '2024-01-05T00:00:00Z'
+    },
+    {
+      id: '2',
+      user_id: '2',
+      plan_id: '2',
+      rating: 4,
+      comment: 'Great apartment design, very practical.',
+      status: 'active',
+      created_at: '2024-01-08T00:00:00Z'
+    }
+  ],
+
+  // Notifications Mock Data
+  notifications: [
+    {
+      id: '1',
+      type: 'order_status',
+      title: 'New Order Received',
+      message: 'Order #1234 has been placed by John Doe',
+      status: 'unread',
+      created_at: '2024-01-15T10:00:00Z'
+    },
+    {
+      id: '2',
+      type: 'payment_received',
+      title: 'Payment Completed',
+      message: 'Payment for Order #1234 has been completed',
+      status: 'read',
+      created_at: '2024-01-15T10:30:00Z'
+    }
+  ],
+
+  // Support Tickets Mock Data
+  supportTickets: [
+    {
+      id: '1',
+      user_id: '1',
+      subject: 'Download Issue',
+      description: 'I cannot download the plan files',
+      status: 'open',
+      priority: 'medium',
+      assigned_to: null,
+      created_at: '2024-01-14T09:00:00Z'
+    },
+    {
+      id: '2',
+      user_id: '2',
+      subject: 'Payment Problem',
+      description: 'Payment failed during checkout',
+      status: 'in_progress',
+      priority: 'high',
+      assigned_to: 'admin-1',
+      created_at: '2024-01-13T14:00:00Z'
+    }
+  ],
+
+  // Downloads Mock Data
+  downloads: [
+    {
+      id: '1',
+      user_id: '1',
+      plan_id: '1',
+      file_name: 'modern-villa-3br.pdf',
+      file_size: '2.5MB',
+      download_count: 1,
+      created_at: '2024-01-10T11:00:00Z'
+    },
+    {
+      id: '2',
+      user_id: '2',
+      plan_id: '2',
+      file_name: 'contemporary-apartment-2br.pdf',
+      file_size: '1.8MB',
+      download_count: 1,
+      created_at: '2024-01-12T16:00:00Z'
+    }
+  ],
+
+  // Communications Mock Data
+  communications: [
+    {
+      id: '1',
+      type: 'email',
+      subject: 'Welcome to SAK Construction',
+      content: 'Thank you for joining our platform...',
+      status: 'sent',
+      created_at: '2024-01-01T00:00:00Z'
+    },
+    {
+      id: '2',
+      type: 'notification',
+      subject: 'New Plan Available',
+      content: 'Check out our latest villa design...',
+      status: 'draft',
+      created_at: '2024-01-15T00:00:00Z'
+    }
+  ],
+
+  // Analytics Reports Mock Data
+  analyticsReports: [
+    {
+      id: '1',
+      report_name: 'Monthly Revenue Report',
+      report_type: 'revenue_analysis',
+      date_range_start: '2024-01-01',
+      date_range_end: '2024-01-31',
+      created_at: '2024-02-01T00:00:00Z'
+    },
+    {
+      id: '2',
+      report_name: 'User Activity Report',
+      report_type: 'user_activity',
+      date_range_start: '2024-01-01',
+      date_range_end: '2024-01-31',
+      created_at: '2024-02-01T00:00:00Z'
+    }
+  ]
 };
 
 // Mock API responses

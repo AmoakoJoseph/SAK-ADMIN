@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState } from 'react'
 import { 
   Card, 
   Button, 
@@ -18,7 +18,10 @@ import {
   Tooltip,
   Badge,
   Descriptions,
-  Timeline
+  Timeline,
+  Spin,
+  Alert,
+  Typography
 } from 'antd'
 import { 
   UserAddOutlined, 
@@ -37,20 +40,14 @@ import {
   CalendarOutlined,
   CrownOutlined,
   TeamOutlined,
-  SettingOutlined
+  SettingOutlined,
+  ReloadOutlined
 } from '@ant-design/icons'
-import { useSelector, useDispatch } from 'react-redux'
-import { RootState } from '../store'
-import { 
-  fetchUsersStart, 
-  fetchUsersSuccess, 
-  addUser,
-  updateUser,
-  deleteUser 
-} from '../store/slices/usersSlice'
+import { useUsers, useUpdateUser, useDeleteUser } from '../hooks/useQueries'
 
 const { Option } = Select
 const { RangePicker } = DatePicker
+const { Text } = Typography
 
 
 const Users: React.FC = () => {
@@ -59,44 +56,45 @@ const Users: React.FC = () => {
   const [selectedUser, setSelectedUser] = useState<any>(null)
   const [userDetailsVisible, setUserDetailsVisible] = useState(false)
   const [form] = Form.useForm()
-  const dispatch = useDispatch()
-  const { users, isLoading } = useSelector((state: RootState) => state.users)
-
+  
+  // TanStack Query hooks
+  const { data: usersData, isLoading, error, refetch } = useUsers()
+  const updateUserMutation = useUpdateUser()
   // Mock data for demonstration
   const mockUsers = [
-        {
-          id: '1',
-          name: 'John Doe',
-          email: 'john.doe@example.com',
+    {
+      id: '1',
+      name: 'John Doe',
+      email: 'john.doe@example.com',
       phone: '+233 24 123 4567',
       role: 'superAdmin',
-          status: 'active',
+      status: 'active',
       avatar: undefined,
-          createdAt: '2024-01-15',
+      createdAt: '2024-01-15',
       lastLogin: '2024-01-20 14:30',
       totalOrders: 15,
       totalSpent: 45000
-        },
-        {
-          id: '2',
-          name: 'Jane Smith',
-          email: 'jane.smith@example.com',
+    },
+    {
+      id: '2',
+      name: 'Jane Smith',
+      email: 'jane.smith@example.com',
       phone: '+233 20 987 6543',
       role: 'contentManager',
-          status: 'active',
+      status: 'active',
       avatar: undefined,
-          createdAt: '2024-01-10',
+      createdAt: '2024-01-10',
       lastLogin: '2024-01-19 09:15',
       totalOrders: 8,
       totalSpent: 28000
-        },
-        {
-          id: '3',
+    },
+    {
+      id: '3',
       name: 'Mike Johnson',
       email: 'mike.johnson@example.com',
       phone: '+233 26 555 1234',
       role: 'orderProcessor',
-          status: 'suspended',
+      status: 'suspended',
       avatar: undefined,
       createdAt: '2024-01-08',
       lastLogin: '2024-01-18 16:45',
@@ -111,20 +109,17 @@ const Users: React.FC = () => {
       role: 'support',
       status: 'active',
       avatar: undefined,
-          createdAt: '2024-01-05',
+      createdAt: '2024-01-05',
       lastLogin: '2024-01-20 11:20',
       totalOrders: 12,
       totalSpent: 38000
     }
   ]
 
-  useEffect(() => {
-    // Simulate loading users
-    dispatch(fetchUsersStart())
-    setTimeout(() => {
-      dispatch(fetchUsersSuccess(mockUsers as any))
-    }, 1000)
-  }, [dispatch])
+  const deleteUserMutation = useDeleteUser()
+  
+  // Extract users from API response or use mock data
+  const users = usersData?.data || mockUsers
 
   const getRoleColor = (role: string) => {
     switch (role) {
@@ -163,8 +158,15 @@ const Users: React.FC = () => {
   }
 
   const handleDeleteUser = (userId: string) => {
-    dispatch(deleteUser(userId))
-    message.success('User deleted successfully')
+    deleteUserMutation.mutate(userId, {
+      onSuccess: () => {
+        message.success('User deleted successfully')
+      },
+      onError: (error) => {
+        message.error('Failed to delete user')
+        console.error('Delete user error:', error)
+      }
+    })
   }
 
   const handleViewUser = (user: any) => {
@@ -175,8 +177,18 @@ const Users: React.FC = () => {
   const handleStatusChange = (userId: string, newStatus: string) => {
     const user = users.find(u => u.id === userId)
     if (user) {
-              dispatch(updateUser({ ...user, status: newStatus as 'active' | 'suspended' | 'banned' }))
-      message.success(`User status updated to ${newStatus}`)
+      updateUserMutation.mutate(
+        { userId, userData: { ...user, status: newStatus as 'active' | 'suspended' | 'banned' } },
+        {
+          onSuccess: () => {
+            message.success(`User status updated to ${newStatus}`)
+          },
+          onError: (error) => {
+            message.error('Failed to update user status')
+            console.error('Update user error:', error)
+          }
+        }
+      )
     }
   }
 
@@ -184,23 +196,24 @@ const Users: React.FC = () => {
     try {
       const values = await form.validateFields()
       if (editingUser) {
-        dispatch(updateUser({ ...editingUser, ...values }))
-        message.success('User updated successfully')
+        updateUserMutation.mutate(
+          { userId: editingUser.id, userData: { ...editingUser, ...values } },
+          {
+            onSuccess: () => {
+              message.success('User updated successfully')
+              setIsModalVisible(false)
+            },
+            onError: (error) => {
+              message.error('Failed to update user')
+              console.error('Update user error:', error)
+            }
+          }
+        )
       } else {
-        const newUser = {
-          id: Date.now().toString(),
-          ...values,
-          role: values.role as 'superAdmin' | 'admin' | 'contentManager' | 'orderProcessor' | 'support',
-          status: values.status as 'active' | 'suspended' | 'banned',
-          createdAt: new Date().toISOString(),
-          lastLogin: null,
-          totalOrders: 0,
-          totalSpent: 0
-        }
-        dispatch(addUser(newUser))
-        message.success('User created successfully')
+        // For now, we'll show a message since we don't have a create user API
+        message.info('User creation will be implemented when backend API is ready')
+        setIsModalVisible(false)
       }
-      setIsModalVisible(false)
     } catch (error) {
       console.error('Validation failed:', error)
     }
@@ -357,8 +370,41 @@ const Users: React.FC = () => {
         </Row>
       </Card>
 
+      {/* Error Alert */}
+      {error && (
+        <Alert
+          message="Error Loading Users"
+          description="Failed to load users. Please try again."
+          type="error"
+          showIcon
+          action={
+            <Button size="small" onClick={() => refetch()}>
+              Retry
+            </Button>
+          }
+        />
+      )}
+
       {/* Users Table */}
       <Card>
+        <div className="mb-4 flex justify-between items-center">
+          <div className="flex items-center space-x-2">
+            <Button 
+              icon={<ReloadOutlined />} 
+              onClick={() => refetch()}
+              loading={isLoading}
+            >
+              Refresh
+            </Button>
+            {updateUserMutation.isPending && (
+              <Text type="secondary">Updating user...</Text>
+            )}
+            {deleteUserMutation.isPending && (
+              <Text type="secondary">Deleting user...</Text>
+            )}
+          </div>
+        </div>
+        
         <Table
           columns={columns}
           dataSource={users}
@@ -479,7 +525,7 @@ const Users: React.FC = () => {
           <div className="flex items-center space-x-2">
             <UserOutlined className="text-primary-500" />
             <span>User Details</span>
-          </div>
+      </div>
         }
         open={userDetailsVisible}
         onCancel={() => setUserDetailsVisible(false)}

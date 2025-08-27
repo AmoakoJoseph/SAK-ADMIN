@@ -15,7 +15,9 @@ import {
   Form,
   Input,
   Checkbox,
-  message
+  message,
+  Alert,
+  Spin
 } from 'antd'
 import { 
   BarChartOutlined, 
@@ -25,8 +27,8 @@ import {
   ShoppingCartOutlined,
   FileTextOutlined,
   RiseOutlined,
-
-  FilterOutlined
+  FilterOutlined,
+  ReloadOutlined
 } from '@ant-design/icons'
 import { 
   PieChart,
@@ -41,6 +43,13 @@ import {
   Line
 } from 'recharts'
 import ErrorBoundary from '../components/ui/ErrorBoundary'
+import { 
+  useDashboardStats, 
+  useSalesReport, 
+  useAnalyticsMetrics,
+  useAnalyticsEvents,
+  useCreateAnalyticsReport 
+} from '../hooks/useQueries'
 
 const { Option } = Select
 const { RangePicker } = DatePicker
@@ -50,6 +59,24 @@ const Analytics: React.FC = () => {
   const [selectedPeriod, setSelectedPeriod] = useState('30')
   const [reportModalVisible, setReportModalVisible] = useState(false)
   const [form] = Form.useForm()
+  
+  // TanStack Query hooks
+  const { data: dashboardData, isLoading: dashboardLoading, error: dashboardError, refetch: refetchDashboard } = useDashboardStats()
+  const { data: metricsData, isLoading: metricsLoading, error: metricsError } = useAnalyticsMetrics({ period: selectedPeriod })
+  const { data: eventsData, isLoading: eventsLoading, error: eventsError } = useAnalyticsEvents({ period: selectedPeriod })
+  const createReportMutation = useCreateAnalyticsReport()
+  
+  // Extract data from API responses or use mock data
+  const stats = dashboardData?.data || {
+    totalRevenue: 125000,
+    totalOrders: 156,
+    totalUsers: 89,
+    totalPlans: 24,
+    revenueGrowth: 12.5,
+    orderGrowth: -2.3,
+    userGrowth: 8.7,
+    planGrowth: 15.2
+  }
 
   // Mock data for charts
   const revenueData = [
@@ -243,20 +270,48 @@ const Analytics: React.FC = () => {
 
   return (
     <div className="p-6">
+      {/* Error Alerts */}
+      {(dashboardError || metricsError || eventsError) && (
+        <Alert
+          message="Error Loading Analytics Data"
+          description="Some analytics data failed to load. Please try again."
+          type="error"
+          showIcon
+          action={
+            <Button size="small" onClick={() => refetchDashboard()}>
+              Retry
+            </Button>
+          }
+          className="mb-6"
+        />
+      )}
+
       <div className="mb-6">
         <div className="flex justify-between items-center">
-            <div>
+          <div>
             <h1 className="text-2xl font-bold text-gray-800 mb-2">Analytics & Reports</h1>
             <p className="text-gray-600">Comprehensive business intelligence and reporting</p>
           </div>
           <Space>
+            <Button 
+              icon={<ReloadOutlined />} 
+              onClick={() => refetchDashboard()}
+              loading={dashboardLoading}
+            >
+              Refresh
+            </Button>
             <Button icon={<DownloadOutlined />}>
               Export Data
             </Button>
             <Button>
               Print Report
             </Button>
-            <Button type="primary" icon={<BarChartOutlined />} onClick={() => setReportModalVisible(true)}>
+            <Button 
+              type="primary" 
+              icon={<BarChartOutlined />} 
+              onClick={() => setReportModalVisible(true)}
+              loading={createReportMutation.isPending}
+            >
               Generate Report
             </Button>
           </Space>

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState } from 'react'
 import { 
   Card, 
   Button, 
@@ -18,7 +18,8 @@ import {
   Badge,
   Descriptions,
   Timeline,
-  Statistic
+  Statistic,
+  Alert
 } from 'antd'
 import { 
   ShoppingCartOutlined, 
@@ -39,16 +40,10 @@ import {
   DownloadOutlined,
   PrinterOutlined,
   MailOutlined,
-  ExclamationCircleOutlined
+  ExclamationCircleOutlined,
+  ReloadOutlined
 } from '@ant-design/icons'
-import { useSelector, useDispatch } from 'react-redux'
-import { RootState } from '../store'
-import { 
-  fetchOrdersStart, 
-  fetchOrdersSuccess, 
-  updateOrder,
-  deleteOrder 
-} from '../store/slices/ordersSlice'
+import { useOrders, useUpdateOrderStatus, useDeleteOrder } from '../hooks/useQueries'
 
 const { Option } = Select
 const { RangePicker } = DatePicker
@@ -62,9 +57,7 @@ const Orders: React.FC = () => {
   const [refundModalVisible, setRefundModalVisible] = useState(false)
   const [form] = Form.useForm()
   const [refundForm] = Form.useForm()
-  const dispatch = useDispatch()
-  const { orders, isLoading } = useSelector((state: RootState) => state.orders)
-
+  
   // Mock data for demonstration
   const mockOrders = [
     {
@@ -74,7 +67,7 @@ const Orders: React.FC = () => {
       customerPhone: '+233 24 123 4567',
       planTitle: 'Modern Villa Plan',
       planId: 'PLAN-001',
-          amount: 2500,
+      amount: 2500,
       status: 'Completed',
       paymentMethod: 'Mobile Money',
       paymentStatus: 'Paid',
@@ -133,13 +126,13 @@ const Orders: React.FC = () => {
     }
   ]
 
-  useEffect(() => {
-    // Simulate loading orders
-    dispatch(fetchOrdersStart())
-    setTimeout(() => {
-      dispatch(fetchOrdersSuccess(mockOrders as any))
-    }, 1000)
-  }, [dispatch])
+  // TanStack Query hooks
+  const { data: ordersData, isLoading, error, refetch } = useOrders()
+  const updateOrderStatusMutation = useUpdateOrderStatus()
+  const deleteOrderMutation = useDeleteOrder()
+  
+  // Extract orders from API response or use mock data
+  const orders = ordersData?.data || mockOrders
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -170,8 +163,15 @@ const Orders: React.FC = () => {
   }
 
   const handleDeleteOrder = (orderId: string) => {
-    dispatch(deleteOrder(orderId))
-    message.success('Order deleted successfully')
+    deleteOrderMutation.mutate(orderId, {
+      onSuccess: () => {
+        message.success('Order deleted successfully')
+      },
+      onError: (error) => {
+        message.error('Failed to delete order')
+        console.error('Delete order error:', error)
+      }
+    })
   }
 
   const handleViewOrder = (order: any) => {
@@ -197,10 +197,20 @@ const Orders: React.FC = () => {
         refundReason: values.refundReason,
         refundDate: new Date().toISOString()
       }
-      dispatch(updateOrder(updatedOrder))
-      message.success('Refund processed successfully')
-      setRefundModalVisible(false)
-      refundForm.resetFields()
+      updateOrderStatusMutation.mutate(
+        { orderId: selectedOrder.id, status: 'Refunded' },
+        {
+          onSuccess: () => {
+            message.success('Refund processed successfully')
+            setRefundModalVisible(false)
+            refundForm.resetFields()
+          },
+          onError: (error) => {
+            message.error('Failed to process refund')
+            console.error('Refund error:', error)
+          }
+        }
+      )
     } catch (error) {
       console.error('Refund validation failed:', error)
     }
@@ -437,8 +447,41 @@ const Orders: React.FC = () => {
         </Row>
       </Card>
 
+      {/* Error Alert */}
+      {error && (
+        <Alert
+          message="Error Loading Orders"
+          description="Failed to load orders. Please try again."
+          type="error"
+          showIcon
+          action={
+            <Button size="small" onClick={() => refetch()}>
+              Retry
+            </Button>
+          }
+        />
+      )}
+
       {/* Orders Table */}
       <Card>
+        <div className="mb-4 flex justify-between items-center">
+          <div className="flex items-center space-x-2">
+            <Button 
+              icon={<ReloadOutlined />} 
+              onClick={() => refetch()}
+              loading={isLoading}
+            >
+              Refresh
+            </Button>
+            {updateOrderStatusMutation.isPending && (
+              <span className="text-gray-500">Updating order...</span>
+            )}
+            {deleteOrderMutation.isPending && (
+              <span className="text-gray-500">Deleting order...</span>
+            )}
+          </div>
+        </div>
+        
         <Table
           columns={columns}
           dataSource={orders}
