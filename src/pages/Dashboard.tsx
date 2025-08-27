@@ -1,5 +1,5 @@
 import React from 'react'
-import { Row, Col, Card, Statistic, Table, List, Avatar } from 'antd'
+import { Row, Col, Card, Statistic, Table, List, Avatar, Spin } from 'antd'
 import { 
   DollarOutlined, 
   ShoppingCartOutlined, 
@@ -9,9 +9,21 @@ import {
   ArrowDownOutlined 
 } from '@ant-design/icons'
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts'
+import { useDashboardStats } from '../hooks/useQueries'
 
 const Dashboard: React.FC = () => {
-  // Mock data for demonstration
+  const { data: dashboardData, isLoading, error } = useDashboardStats();
+  
+  const stats = dashboardData?.data || {
+    totalRevenue: 125000,
+    totalOrders: 156,
+    totalUsers: 89,
+    totalPlans: 24,
+    revenueGrowth: 12.5,
+    orderGrowth: -2.3,
+    userGrowth: 8.7,
+    planGrowth: 15.2
+  };
   const revenueData = [
     { name: 'Jan', value: 4000 },
     { name: 'Feb', value: 3000 },

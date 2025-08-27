@@ -482,7 +482,7 @@ const Settings: React.FC = () => {
                       Export Templates
                     </Button>
                   </Space>
-                </div>
+        </div>
 
                 <List
                   dataSource={emailTemplates}
@@ -525,11 +525,11 @@ const Settings: React.FC = () => {
                           </Space>
                         }
                         description={
-                          <div>
+              <div>
                             <div><strong>Subject:</strong> {template.subject}</div>
                             <div><strong>Type:</strong> {template.type}</div>
                             <div><strong>Last Modified:</strong> {template.lastModified}</div>
-                          </div>
+            </div>
                         }
                       />
                     </List.Item>
@@ -758,35 +758,35 @@ const Settings: React.FC = () => {
                       </Space>
                     </Card>
                   </Col>
-                </Row>
-
-                <Card title="System Logs" className="mt-6">
-                  <List
-                    dataSource={systemLogs}
-                    renderItem={(log) => (
-                      <List.Item>
-                        <List.Item.Meta
-                          avatar={getLogIcon(log.type)}
-                          title={
-                            <Space>
-                              <span>{log.message}</span>
-                              <Tag color={getLogColor(log.type)}>{log.type}</Tag>
-                            </Space>
-                          }
-                          description={
-                            <div>
-                              <div><strong>Time:</strong> {log.timestamp}</div>
-                              <div><strong>User:</strong> {log.user}</div>
-                            </div>
-                          }
-                        />
-                      </List.Item>
-                    )}
-                  />
-                </Card>
-              </>
-            )
-          }
+                            </Row>
+    
+                            <Card title="System Logs" className="mt-6">
+                              <List
+                                dataSource={systemLogs}
+                                renderItem={(log) => (
+                                  <List.Item>
+                                    <List.Item.Meta
+                                      avatar={getLogIcon(log.type)}
+                                      title={
+                                        <Space>
+                                          <span>{log.message}</span>
+                                          <Tag color={getLogColor(log.type)}>{log.type}</Tag>
+                                        </Space>
+                                      }
+                                      description={
+              <div>
+                                          <div><strong>Time:</strong> {log.timestamp}</div>
+                                          <div><strong>User:</strong> {log.user}</div>
+          </div>
+                                      }
+                                    />
+                                  </List.Item>
+                                )}
+                              />
+                            </Card>
+                          </>
+                        )
+                      }
         ]} />
       </Card>
     </div>

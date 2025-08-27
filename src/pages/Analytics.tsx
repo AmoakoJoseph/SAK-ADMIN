@@ -36,8 +36,11 @@ import {
   YAxis, 
   CartesianGrid, 
   Tooltip as RechartsTooltip, 
-  ResponsiveContainer
+  ResponsiveContainer,
+  LineChart,
+  Line
 } from 'recharts'
+import ErrorBoundary from '../components/ui/ErrorBoundary'
 
 const { Option } = Select
 const { RangePicker } = DatePicker
@@ -50,12 +53,12 @@ const Analytics: React.FC = () => {
 
   // Mock data for charts
   const revenueData = [
-    { month: 'Jan', revenue: 125000, orders: 45, users: 120 },
-    { month: 'Feb', revenue: 98000, orders: 38, users: 95 },
-    { month: 'Mar', revenue: 145000, orders: 52, users: 140 },
-    { month: 'Apr', revenue: 132000, orders: 48, users: 125 },
-    { month: 'May', revenue: 168000, orders: 62, users: 155 },
-    { month: 'Jun', revenue: 189000, orders: 68, users: 175 }
+    { name: 'Jan', value: 125000, orders: 45, users: 120 },
+    { name: 'Feb', value: 98000, orders: 38, users: 95 },
+    { name: 'Mar', value: 145000, orders: 52, users: 140 },
+    { name: 'Apr', value: 132000, orders: 48, users: 125 },
+    { name: 'May', value: 168000, orders: 62, users: 155 },
+    { name: 'Jun', value: 189000, orders: 68, users: 175 }
   ]
 
 
@@ -358,10 +361,11 @@ const Analytics: React.FC = () => {
       </Row>
 
       {/* Charts Section */}
-      <Tabs 
-        defaultActiveKey="overview" 
-        type="card"
-        items={[
+      <ErrorBoundary>
+        <Tabs 
+          defaultActiveKey="overview" 
+          type="card"
+          items={[
           {
             key: 'overview',
             label: 'Overview',
@@ -370,15 +374,15 @@ const Analytics: React.FC = () => {
                 <Col xs={24} lg={16}>
                   <Card title="Revenue Trend" className="h-80">
                     <ResponsiveContainer width="100%" height="100%">
-                      <div>
+                      <LineChart data={revenueData}>
                         <CartesianGrid strokeDasharray="3 3" />
-                        <XAxis dataKey="month" />
+                        <XAxis dataKey="name" />
                         <YAxis />
                         <RechartsTooltip 
                           formatter={(value: any) => [`₵${value.toLocaleString()}`, 'Revenue']}
                         />
-                        <div>Revenue Chart Placeholder</div>
-                      </div>
+                        <Line type="monotone" dataKey="value" stroke="#f97316" strokeWidth={2} />
+                      </LineChart>
                     </ResponsiveContainer>
                   </Card>
                 </Col>
@@ -435,7 +439,8 @@ const Analytics: React.FC = () => {
             )
           }
         ]}
-      />
+        />
+      </ErrorBoundary>
 
       {/* Report Generation Modal */}
       <Modal

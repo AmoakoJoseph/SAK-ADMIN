@@ -26,49 +26,53 @@ import {
 import { useNavigate } from 'react-router-dom'
 import { useDispatch } from 'react-redux'
 import { loginStart, loginSuccess, loginFailure } from '@/store/slices/authSlice'
+import { useAuthLogin } from '../hooks/useQueries'
 
 const { Title, Text, Link } = Typography
 
 const Login: React.FC = () => {
-  const [loading, setLoading] = useState(false)
   const [rememberMe, setRememberMe] = useState(false)
   const [form] = Form.useForm()
   const navigate = useNavigate()
   const dispatch = useDispatch()
   const { message } = App.useApp()
+  const loginMutation = useAuthLogin()
 
   const handleLogin = async (values: any) => {
-    setLoading(true)
     dispatch(loginStart())
     
     try {
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 1500))
-      
-      // Mock successful login
-      const userData = {
-        id: '1',
-        name: 'John Doe',
+      const result = await loginMutation.mutateAsync({
         email: values.email,
-        role: 'superAdmin' as const,
-        avatar: undefined,
-        token: 'mock-jwt-token'
+        password: values.password,
+      })
+      
+      if (result.success) {
+        const userData = {
+          id: result.user.id,
+          name: result.user.name,
+          email: result.user.email,
+          role: result.user.role,
+          avatar: undefined,
+          token: result.token
+        }
+        
+        dispatch(loginSuccess(userData))
+        message.success('Login successful! Welcome back.')
+        
+        // Store in localStorage if remember me is checked
+        if (rememberMe) {
+          localStorage.setItem('user', JSON.stringify(userData))
+        }
+        
+        navigate('/')
+      } else {
+        dispatch(loginFailure(result.message || 'Login failed'))
+        message.error(result.message || 'Login failed. Please check your credentials.')
       }
-      
-      dispatch(loginSuccess(userData))
-      message.success('Login successful! Welcome back.')
-      
-      // Store in localStorage if remember me is checked
-      if (rememberMe) {
-        localStorage.setItem('user', JSON.stringify(userData))
-      }
-      
-      navigate('/')
-    } catch (error) {
-      dispatch(loginFailure('Invalid email or password'))
-      message.error('Login failed. Please check your credentials.')
-    } finally {
-      setLoading(false)
+    } catch (error: any) {
+      dispatch(loginFailure(error.message || 'Invalid email or password'))
+      message.error(error.message || 'Login failed. Please check your credentials.')
     }
   }
 
@@ -198,12 +202,12 @@ const Login: React.FC = () => {
               <Button 
                 type="primary" 
                 htmlType="submit" 
-                loading={loading}
+                loading={loginMutation.isPending}
                 size="large"
                 block
                 className="bg-orange-500 hover:bg-orange-600 border-orange-500"
               >
-                {loading ? 'Signing in...' : 'Sign In'}
+                {loginMutation.isPending ? 'Signing in...' : 'Sign In'}
               </Button>
             </Form.Item>
           </Form>
