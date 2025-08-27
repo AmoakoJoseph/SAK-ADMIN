@@ -14,7 +14,8 @@ import { useDashboardStats } from '../hooks/useQueries'
 const Dashboard: React.FC = () => {
   const { data: dashboardData, isLoading, error } = useDashboardStats();
   
-  const stats = dashboardData?.data || {
+  // Fallback data
+  const fallbackStats = {
     totalRevenue: 125000,
     totalOrders: 156,
     totalUsers: 89,
@@ -24,6 +25,8 @@ const Dashboard: React.FC = () => {
     userGrowth: 8.7,
     planGrowth: 15.2
   };
+  
+  const stats = dashboardData && 'data' in dashboardData ? dashboardData.data : fallbackStats;
   const revenueData = [
     { name: 'Jan', value: 4000 },
     { name: 'Feb', value: 3000 },

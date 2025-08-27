@@ -206,9 +206,6 @@ export const useDashboardStats = () => {
     queryKey: queryKeys.analytics.dashboard,
     queryFn: () => analyticsAPI.getDashboardStats(),
     retry: false,
-    onError: (error: any) => {
-      console.warn('Dashboard stats failed:', error.message);
-    },
   });
 };
 

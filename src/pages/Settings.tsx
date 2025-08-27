@@ -774,10 +774,10 @@ const Settings: React.FC = () => {
                                         </Space>
                                       }
                                       description={
-              <div>
+                                        <div>
                                           <div><strong>Time:</strong> {log.timestamp}</div>
                                           <div><strong>User:</strong> {log.user}</div>
-          </div>
+                                        </div>
                                       }
                                     />
                                   </List.Item>
