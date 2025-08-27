@@ -28,7 +28,7 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
   }
 
   // Check if token exists
-  if (!user.token) {
+  if (!user?.token) {
     return <Navigate to="/login" state={{ from: location }} replace />
   }
 

@@ -28,9 +28,6 @@ const PageLoading = () => (
 )
 
 function App() {
-  // Initialize authentication state
-  useAuthInit()
-  
   return (
     <NotificationProvider>
       <Layout className="admin-layout">

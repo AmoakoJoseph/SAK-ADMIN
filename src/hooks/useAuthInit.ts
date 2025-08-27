@@ -15,31 +15,36 @@ export const useAuthInit = () => {
   const dispatch = useDispatch()
 
   useEffect(() => {
-    // Check for existing authentication in localStorage
-    const userStr = localStorage.getItem('user')
-    const adminToken = localStorage.getItem('adminToken')
-    
-    if (userStr && adminToken) {
-      try {
-        const user: User = JSON.parse(userStr)
-        // Ensure the user has a token
-        if (user.token || adminToken) {
-          const userWithToken = {
-            ...user,
-            token: user.token || adminToken
+    try {
+      // Check for existing authentication in localStorage
+      const userStr = localStorage.getItem('user')
+      const adminToken = localStorage.getItem('adminToken')
+      
+      if (userStr && adminToken) {
+        try {
+          const user: User = JSON.parse(userStr)
+          // Ensure the user has a token
+          if (user?.token || adminToken) {
+            const userWithToken = {
+              ...user,
+              token: user?.token || adminToken
+            }
+            dispatch(loginSuccess(userWithToken))
+          } else {
+            dispatch(initializeAuth())
           }
-          dispatch(loginSuccess(userWithToken))
-        } else {
+        } catch (error) {
+          console.warn('Failed to parse user from localStorage:', error)
+          // Clear invalid data
+          localStorage.removeItem('user')
+          localStorage.removeItem('adminToken')
           dispatch(initializeAuth())
         }
-      } catch (error) {
-        console.warn('Failed to parse user from localStorage:', error)
-        // Clear invalid data
-        localStorage.removeItem('user')
-        localStorage.removeItem('adminToken')
+      } else {
         dispatch(initializeAuth())
       }
-    } else {
+    } catch (error) {
+      console.warn('Error during auth initialization:', error)
       dispatch(initializeAuth())
     }
   }, [dispatch])
