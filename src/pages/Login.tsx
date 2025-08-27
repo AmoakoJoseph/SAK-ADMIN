@@ -23,7 +23,7 @@ import {
   MailOutlined,
   SafetyOutlined
 } from '@ant-design/icons'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, useLocation } from 'react-router-dom'
 import { useDispatch } from 'react-redux'
 import { loginStart, loginSuccess, loginFailure } from '@/store/slices/authSlice'
 import { useAuthLogin } from '../hooks/useQueries'
@@ -34,6 +34,7 @@ const Login: React.FC = () => {
   const [rememberMe, setRememberMe] = useState(false)
   const [form] = Form.useForm()
   const navigate = useNavigate()
+  const location = useLocation()
   const dispatch = useDispatch()
   const { message } = App.useApp()
   const loginMutation = useAuthLogin()
@@ -64,15 +65,20 @@ const Login: React.FC = () => {
             token: token || 'mock-token'
           }
         
-                  dispatch(loginSuccess(userData))
+          dispatch(loginSuccess(userData))
           message.success('Login successful! Welcome back.')
           
-          // Store in localStorage if remember me is checked
+          // Store token in localStorage for API requests
+          localStorage.setItem('adminToken', token || 'mock-token')
+          
+          // Store user data in localStorage if remember me is checked
           if (rememberMe) {
             localStorage.setItem('user', JSON.stringify(userData))
           }
           
-          navigate('/')
+                     // Redirect to the intended page or dashboard
+           const from = (location.state as any)?.from?.pathname || '/'
+           navigate(from, { replace: true })
         } else {
           const errorMessage = 'Login failed - User data not found in response'
           dispatch(loginFailure(errorMessage))

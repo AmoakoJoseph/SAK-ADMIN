@@ -106,8 +106,9 @@ const AdminLayout: React.FC = () => {
     if (key === 'profile') {
       navigate('/profile')
     } else if (key === 'logout') {
-      // Clear user data from localStorage
+      // Clear all authentication data from localStorage
       localStorage.removeItem('user')
+      localStorage.removeItem('adminToken')
       // Dispatch logout action
       dispatch(logout())
       // Navigate to login page

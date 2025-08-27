@@ -45,7 +45,22 @@ export interface ApiResponse<T> {
 
 // Utility functions
 const getAuthHeaders = () => {
-  const token = localStorage.getItem('adminToken');
+  // Try to get token from localStorage first (for persistence)
+  let token = localStorage.getItem('adminToken');
+  
+  // If not in localStorage, try to get from Redux store
+  if (!token) {
+    const userStr = localStorage.getItem('user');
+    if (userStr) {
+      try {
+        const user = JSON.parse(userStr);
+        token = user.token;
+      } catch (e) {
+        console.warn('Failed to parse user from localStorage');
+      }
+    }
+  }
+  
   return {
     'Authorization': token ? `Bearer ${token}` : '',
     'Content-Type': 'application/json'
@@ -62,7 +77,8 @@ const handleApiError = (error: any, response?: Response) => {
   } else if (response?.status === 404) {
     throw new Error('Resource not found');
   } else if (response?.status === 500) {
-    throw new Error('Server error - Please try again later');
+    console.warn('Backend server error (500). Using mock data.');
+    throw new Error('Server error - using mock data');
   } else if (response?.status === 0 || error.message?.includes('CORS') || error.message?.includes('Failed to fetch')) {
     // Handle CORS errors gracefully
     console.warn('CORS error or network issue. Using mock data.');
@@ -269,8 +285,8 @@ export const analyticsAPI = {
     try {
       return await apiRequest<ApiResponse<any>>('/admin/dashboard');
     } catch (error: any) {
-      if (error.message.includes('Network error')) {
-        console.log('Using mock dashboard data due to network error');
+      if (error.message.includes('Network error') || error.message.includes('Server error')) {
+        console.log('Using mock dashboard data due to network/server error');
         return createMockResponse(mockData.dashboardStats);
       }
       throw error;

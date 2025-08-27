@@ -3,6 +3,8 @@ import { Layout, Spin } from 'antd'
 import { Suspense, lazy } from 'react'
 import AdminLayout from './components/layout/AdminLayout'
 import NotificationProvider from './components/ui/NotificationProvider'
+import ProtectedRoute from './components/auth/ProtectedRoute'
+import { useAuthInit } from './hooks/useAuthInit'
 
 // Lazy load pages for better chunk splitting
 const Dashboard = lazy(() => import('./pages/Dashboard'))
@@ -26,6 +28,9 @@ const PageLoading = () => (
 )
 
 function App() {
+  // Initialize authentication state
+  useAuthInit()
+  
   return (
     <NotificationProvider>
       <Layout className="admin-layout">
@@ -40,58 +45,62 @@ function App() {
               <ForgotPassword />
             </Suspense>
           } />
-          <Route path="/" element={<AdminLayout />}>
-            <Route index element={
-              <Suspense fallback={<PageLoading />}>
-                <Dashboard />
-              </Suspense>
-            } />
-            <Route path="plans" element={
-              <Suspense fallback={<PageLoading />}>
-                <Plans />
-              </Suspense>
-            } />
-            <Route path="users" element={
-              <Suspense fallback={<PageLoading />}>
-                <Users />
-              </Suspense>
-            } />
-            <Route path="orders" element={
-              <Suspense fallback={<PageLoading />}>
-                <Orders />
-              </Suspense>
-            } />
-            <Route path="analytics" element={
-              <Suspense fallback={<PageLoading />}>
-                <Analytics />
-              </Suspense>
-            } />
-            <Route path="files" element={
-              <Suspense fallback={<PageLoading />}>
-                <Files />
-              </Suspense>
-            } />
-            <Route path="communications" element={
-              <Suspense fallback={<PageLoading />}>
-                <Communications />
-              </Suspense>
-            } />
-            <Route path="security" element={
-              <Suspense fallback={<PageLoading />}>
-                <Security />
-              </Suspense>
-            } />
-            <Route path="settings" element={
-              <Suspense fallback={<PageLoading />}>
-                <Settings />
-              </Suspense>
-            } />
-            <Route path="profile" element={
-              <Suspense fallback={<PageLoading />}>
-                <Profile />
-              </Suspense>
-            } />
-          </Route>
+                     <Route path="/" element={
+             <ProtectedRoute>
+               <AdminLayout />
+             </ProtectedRoute>
+           }>
+             <Route index element={
+               <Suspense fallback={<PageLoading />}>
+                 <Dashboard />
+               </Suspense>
+             } />
+             <Route path="plans" element={
+               <Suspense fallback={<PageLoading />}>
+                 <Plans />
+               </Suspense>
+             } />
+             <Route path="users" element={
+               <Suspense fallback={<PageLoading />}>
+                 <Users />
+               </Suspense>
+             } />
+             <Route path="orders" element={
+               <Suspense fallback={<PageLoading />}>
+                 <Orders />
+               </Suspense>
+             } />
+             <Route path="analytics" element={
+               <Suspense fallback={<PageLoading />}>
+                 <Analytics />
+               </Suspense>
+             } />
+             <Route path="files" element={
+               <Suspense fallback={<PageLoading />}>
+                 <Files />
+               </Suspense>
+             } />
+             <Route path="communications" element={
+               <Suspense fallback={<PageLoading />}>
+                 <Communications />
+               </Suspense>
+             } />
+             <Route path="security" element={
+               <Suspense fallback={<PageLoading />}>
+                 <Security />
+               </Suspense>
+             } />
+             <Route path="settings" element={
+               <Suspense fallback={<PageLoading />}>
+                 <Settings />
+               </Suspense>
+             } />
+             <Route path="profile" element={
+               <Suspense fallback={<PageLoading />}>
+                 <Profile />
+               </Suspense>
+             } />
+           </Route>
         </Routes>
       </Layout>
     </NotificationProvider>
