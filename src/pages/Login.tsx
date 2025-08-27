@@ -49,25 +49,35 @@ const Login: React.FC = () => {
       
       console.log('Login result:', result) // Debug log
       
-      if (result && result.success && result.user) {
-        const userData = {
-          id: result.user.id || '1',
-          name: result.user.name || 'SAK Admin',
-          email: result.user.email || values.email,
-          role: result.user.role || 'superAdmin',
-          avatar: undefined,
-          token: result.token || 'mock-token'
+      if (result && result.success) {
+        // Handle both backend response structure and mock data structure
+        const user = result.user || result.data?.admin
+        const token = result.token || result.data?.session?.token
+        
+        if (user) {
+          const userData = {
+            id: user.id || '1',
+            name: user.name || user.fullName || 'SAK Admin',
+            email: user.email || values.email,
+            role: user.role || 'superAdmin',
+            avatar: undefined,
+            token: token || 'mock-token'
+          }
+        
+                  dispatch(loginSuccess(userData))
+          message.success('Login successful! Welcome back.')
+          
+          // Store in localStorage if remember me is checked
+          if (rememberMe) {
+            localStorage.setItem('user', JSON.stringify(userData))
+          }
+          
+          navigate('/')
+        } else {
+          const errorMessage = 'Login failed - User data not found in response'
+          dispatch(loginFailure(errorMessage))
+          message.error(errorMessage)
         }
-        
-        dispatch(loginSuccess(userData))
-        message.success('Login successful! Welcome back.')
-        
-        // Store in localStorage if remember me is checked
-        if (rememberMe) {
-          localStorage.setItem('user', JSON.stringify(userData))
-        }
-        
-        navigate('/')
       } else {
         const errorMessage = result?.message || 'Login failed - Invalid response'
         dispatch(loginFailure(errorMessage))
